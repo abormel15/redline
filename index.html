@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Redline Desk</title>
 <meta name="application-name" content="Redline Desk">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -8892,11 +8892,20 @@ window.__rd = { S, viewChanged, changed, buildPdf, ingest, measureOf, fmtFtIn, f
   --mat: #141416; --danger: #FF453A; --ok: #30D158;
   --field: rgba(118,118,128,.24); --glass: rgba(28,28,30,.86); --shadow: 0 12px 34px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.4); color-scheme: dark }
 
+/* installed app: the interface itself must never pinch-zoom or double-tap-zoom; only the sheet zooms (its own handlers) */
+html { touch-action: pan-x pan-y; }
 /* safe areas (status bar at the top, home indicator at the bottom) — values set by boot.js, env() when the browser reports it */
 :root { --sat: env(safe-area-inset-top, 0px); --sab: env(safe-area-inset-bottom, 0px); padding-top: var(--sat); padding-bottom: var(--sab); }
 #files { padding-top: var(--sat); padding-bottom: var(--sab); }
 #status { padding-bottom: 3px; }   /* the root padding already clears the home indicator */
 #toast { bottom: calc(64px + var(--sab)); }
+
+/* page zoom off: the app owns pinch and double-tap. Pan stays allowed so bars, lists and menus still scroll;
+   #stage, .rsz, .sigpad etc. keep their own touch-action: none from V85 */
+html, body, #app, .bar, #rail, .side, .scroll, .menu, .modal, .scrim, .pop, #files, #filesBody, #filesHead, #status, #quickBar { touch-action: pan-x pan-y; }
+html { overflow: hidden; overscroll-behavior: none; }
+/* installed on an iPad: Save to Files lives in the share sheet, so the Download button is not offered */
+:root[data-installed] #dvDl { display: none; }
 
 body { font-family: var(--ui); -webkit-font-smoothing: antialiased; letter-spacing: -0.01em; }
 .bar { border-bottom-color: var(--line); }
@@ -8976,6 +8985,10 @@ body { font-family: var(--ui); -webkit-font-smoothing: antialiased; letter-spaci
 (() => {
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) {}
   try { if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('controllerchange', () => { window.__rdUpdated = true; }); } catch (e) {}
+  // Safari page zoom: a pinch that starts on a bar, panel or the rail used to zoom the whole interface (the sheet already handles
+  // its own pinch and prevents the default there). Block it everywhere; the sheet's handlers still run.
+  for (const t of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(t, e => { e.preventDefault(); }, { passive: false });
+  document.addEventListener('touchmove', e => { if (e.touches && e.touches.length > 1 && !(e.target.closest && e.target.closest('#stage'))) e.preventDefault(); }, { passive: false });
   const root = document.documentElement;
   const installed = () => { try { return navigator.standalone === true || matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches; } catch (e) { return false; } };
   const measure = () => { const p = document.createElement('div'); p.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)'; document.body.appendChild(p); const cs = getComputedStyle(p), r = { top: parseFloat(cs.paddingTop) || 0, bottom: parseFloat(cs.paddingBottom) || 0 }; p.remove(); return r; };
@@ -8985,6 +8998,7 @@ body { font-family: var(--ui); -webkit-font-smoothing: antialiased; letter-spaci
     root.style.setProperty('--sat', top + 'px'); root.style.setProperty('--sab', bottom + 'px');
     return { on, env, top, bottom }; };
   window.__rdSafeArea = safeArea;
+  if (installed()) root.setAttribute('data-installed', '');
   const run = () => { try { safeArea(); } catch (e) {} };
   if (document.body) run(); else document.addEventListener('DOMContentLoaded', run);
   let t = 0; const later = () => { clearTimeout(t); t = setTimeout(run, 120); };
