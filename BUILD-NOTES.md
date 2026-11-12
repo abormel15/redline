@@ -40,3 +40,16 @@ serves Ishita and Mihai.
   libraries + document and drawing works, offline stroke survives the next online load, PDF export builds, Save PDF and
   Save to… or share deliver a file.
 - Screenshots: `shots.js` (OUT, DARK env) — `shots85/`, `shotsrd/`, `shotsrd-dark/`.
+
+## Nov 12 2026, later the same day — field reports from the iPad
+- Status bar covered the top row: iPadOS reports env(safe-area-inset-top) = 0 to installed web apps → boot.js sets --sat 24px /
+  --sab 20px when installed and the insets read 0 (t120 checks it).
+- Whole interface zoomed to ~145% and toolbars slid away; pinch sometimes read as one finger: Safari page zoom (never possible
+  inside the Claude host). Viewport maximum-scale=1,user-scalable=no (honoured by home-screen apps), touch-action: pan-x pan-y
+  on html/body/bars/rail/panels (sheet keeps none), gesturestart/change/end + multi-touch touchmove preventDefault at document level.
+- Download button hidden when installed (home-screen apps have no download UI); Save to Files lives in the share sheet.
+- Highlighter holes where a stroke crossed itself (iPadOS only; Chromium and Linux WebKit render the stroke cleanly): HLFILL86 in
+  patches.py draws plain highlights as one filled union (quads + discs along the smoothed path, nonzero). Pixel-compared to the
+  stroked version in Chromium (same coverage within 2%), PDF export editable + flattened checked.
+- Open: highlighter hold-to-straighten reported not working on the iPad; the same code passes t111a's pen and highlighter hold
+  checks on this build. Waiting for an A/B against the Claude version on the same iPad.
