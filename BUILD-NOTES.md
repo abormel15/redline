@@ -1,0 +1,42 @@
+# Redline Desk — iPad edition (home-screen web app)
+
+Nov 12 2026. Built from the published Claude artifact V85 (`/home/claude/src85/index.html` + `lib/`, fetched byte-for-byte
+from https://claude.ai/artifact/Edp2SEQdszRCHuMbehRPWx, version 1792670639-18d3). The Claude version is untouched and still
+serves Ishita and Mihai.
+
+## What the build does (`build.py`)
+- Replaces the artifact skeleton head with a real head: viewport-fit=cover, manifest, apple-touch-icon, apple-mobile-web-app-capable,
+  theme-color (light/dark). Same reset rules kept.
+- Sets `window.RD_STANDALONE = true` before the app script. This switches on the STANDALONE edition that already existed in the
+  code: Ask Claude dock hidden, Claude menu items filtered out of every menu and the feature finder, share-sheet delivery
+  (`deliver()` → navigator.share with the file, or Download), ICS reminder export, standalone help text, `sw.js` registration.
+  cloud sync (CL) and collaboration (CO) go to status 'none' on their own when `window.claude` is absent.
+- Relabels `BUILD` to `85 · Nov 12 2026 · iPad edition` (Settings → "Redline Desk version").
+- Appends `theme.css` (colors, type, radii, shadows only; layout geometry unchanged) and `boot.js` (navigator.storage.persist).
+- Copies `lib/` unchanged, writes `manifest.webmanifest`, icons, and `sw.js` with a content-hash version.
+- No app logic is edited. Rebuild: `python3 /home/claude/rd-build/build.py` → `/home/claude/rd/`.
+
+## Service worker (`sw.js`)
+- Precaches index.html, the three pdf.js / pdf-lib files, the four standard fonts, manifest and icons.
+- Page: network first, cached copy when offline. Everything else: cache first; Google fonts and other cross-origin fetches are
+  stored in `rd-runtime` once seen online. Old `rd-shell-*` caches are dropped on activate; skipWaiting + clients.claim.
+
+## Theme (`theme.css`)
+- System font stack; iOS palette (#007AFF / #0A84FF accent, #F2F2F7 / #000 backgrounds, #FF3B30 danger, #34C759 ok).
+- Frosted (backdrop-filter) menus, popovers, quick bar, toast, nav arrows; 18px modals; 10–11px button radii; filled inputs;
+  segmented side-panel tabs; Files cards 14px.
+- The system font is wider than Barlow Semi Condensed: `#rail .rlab` shrunk to 8px so the rail stays 58px wide (measured 58.8 vs
+  58.4 in V85); Files/Save labels hide at ≤1300px instead of 1080; props bar 14px at ≤900px. Top bar overflow measured 0 at
+  1376/1300/1180/1133/1032/820 (V85 itself has 17px at 1133).
+
+## Tests (`/home/claude/markup`)
+- Harness `tw.js` (PORT, VP, PAGE env). Fixture `fx/docA.pdf` regenerated (3 landscape pages with text). `fx/real/bic-interiors.pdf`
+  is a stand-in (the Interior finish plans set) — never publish.
+- Baseline: the same t111a–f files run against untouched V85 (`base85.log`) then against the build (`rd.log`); only differences
+  count. t111c (full bar/panel/menu tour) is the current version and passes on both. The attached t111a/b/d/e/f copies are older
+  than V85 and fail/crash identically on both builds (stale selectors) — not app defects.
+- `t120.js`: standalone switch, no Claude UI, manifest + icons + Apple meta, light/dark palette, Settings label, More menu renders
+  without Claude items, service worker active with shell cached, draw → save → reload persists, offline reload brings back app +
+  libraries + document and drawing works, offline stroke survives the next online load, PDF export builds, Save PDF and
+  Save to… or share deliver a file.
+- Screenshots: `shots.js` (OUT, DARK env) — `shots85/`, `shotsrd/`, `shotsrd-dark/`.
