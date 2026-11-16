@@ -91,3 +91,8 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
 - TFLOW86 columns: a gap inside a row is a column gutter when it is > 3h wide, or > 0.8h and the same x stays free of text in
   ≥ 50% of the straddling rows nearby (3 sample points across the gap); then the row is split and each side is its own line.
   Narrow gutters (≈1.6h) split; a single justified row with wide spaces does not. Fixture fx/cols.pdf, test t124.js.
+- `app80.js` FEST86 — Settings › Appearance › Festive look (store 'fest': off | auto | id). Full palettes (light + dark) for
+  autumn (Nov), Halloween (Oct 15–31), Christmas (Dec 1–25), New Year (Dec 26–Jan 2), Valentine's (Feb 7–14), St. Patrick's
+  (Mar 14–17), Fourth of July (Jul 1–4) and "Wizard's study" (manual only; parchment/scarlet, midnight/old gold — colors only,
+  no franchise names, crests or characters). applyLook wrapper sets the vars inline on :root, a 3px stripe under #top, theme-color
+  metas follow the panel color; off removes everything and restores the accent. Hourly re-check for auto. Test t125.js.
