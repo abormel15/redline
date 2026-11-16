@@ -643,9 +643,9 @@ select.sel { height: 32px; border: 1px solid var(--line); border-radius: 5px; ba
   <div id="filesFoot"><span id="filesInfo"></span><span id="filesBar" hidden><span id="flCount"></span><button class="btn line" id="flMerge">Merge</button><button class="btn line" id="flMove">Move</button><button class="btn line danger" id="flDelete">Delete</button><button class="btn line" id="flCancel">Done</button></span></div>
 </section>
 <div id="toast" hidden role="status"></div>
-<input type="file" id="fImport" accept="application/pdf,.pdf" multiple hidden>
-<input type="file" id="fOpen" accept="application/pdf,.pdf" hidden>
-<input type="file" id="fAdd" accept="application/pdf,.pdf" hidden>
+<input type="file" id="fImport" accept="application/pdf,.pdf,image/*,.heic,.heif" multiple hidden>
+<input type="file" id="fOpen" accept="application/pdf,.pdf,image/*,.heic,.heif" multiple hidden>
+<input type="file" id="fAdd" accept="application/pdf,.pdf,image/*,.heic,.heif" multiple hidden>
 <input type="file" id="fImg" accept="image/*" hidden>
 <input type="file" id="fCam" accept="image/*" capture="environment" hidden>
 <input type="file" id="fMerge" accept="application/pdf,.pdf" hidden>
@@ -8529,7 +8529,7 @@ try { HELP.push(['Choosing what goes in a report', ['Every report that lists mar
 Object.assign(RDX, { reportChooser, reportDialog, runReport, RC_FOR, rcKind, RF: () => RF_ONLY });
 
 /* ---------- V81: hold-to-straighten sign, and which version is running ---------- */
-const BUILD = '85 · Nov 12 2026 · iPad edition';
+const BUILD = '86 · Nov 16 2026 · iPad edition';
 try { const st = document.createElement('style'); st.textContent = `#snapCue{position:fixed;z-index:60;pointer-events:none;padding:6px 12px;border-radius:999px;background:#17212b;color:#fff;font:600 14px var(--ui,system-ui);box-shadow:0 2px 10px #0004;opacity:0;transform:scale(.6);transition:opacity .12s,transform .12s;white-space:nowrap}
 #snapCue.on{opacity:1;transform:scale(1);animation:snapPop .32s ease-out}@keyframes snapPop{0%{transform:scale(.6)}55%{transform:scale(1.15)}100%{transform:scale(1)}}`; document.head.appendChild(st); } catch (e) {}
 // the sign never outlives the stroke, whatever ends it
@@ -8804,6 +8804,166 @@ const lineBuildV85b = lineBuild; lineBuild = function (el, re) { lineBuildV85b.a
     const row = seg(el, 'Sides', [[0, 'Total only'], [1, 'Show each side']], st.segLab ? 1 : 0, v => { setProp('segLab', v ? 1 : undefined); re(); }); row.classList.add('seglabrow'); } catch (e) {} };
 const styleForV85b = styleFor; styleFor = function (type) { const st = styleForV85b.apply(this, arguments); try { if (TOOLS85 && (type === 'perimeter' || type === 'area') && S.style.segLab) st.segLab = 1; } catch (e) {} return st; };
 
+
+/* ---------- IMGX86 (iPad edition): images in, images and PDFs out ----------
+   In: photos and images (JPEG, PNG, HEIC, WebP, GIF…) open as documents or go in as new pages; several at once become one
+   multi-page PDF; a photo straight from the camera can become a page. Each image becomes a page at 150 dpi, embedded as JPEG
+   (PNG when the image type can carry transparency). Orientation follows the photo's EXIF because the browser decodes it.
+   Out: one Export dialog — PDF (editable or flattened), PNG or JPEG; this page, every page or a range; four sizes; with or
+   without markups. Several image pages leave as one ZIP. Delivery goes through saveFile → share sheet on the iPad. Switch: IMGX86. */
+const IMGX86 = true;
+const IMG_RE86 = /\.(jpe?g|png|gif|webp|heic|heif|bmp|tiff?|avif)$/i;
+const isImgFile86 = f => !!f && (/^image\//.test(f.type || '') || IMG_RE86.test(f.name || ''));
+const PNG_RE86 = /png|gif|webp|avif|svg/i;
+function blobU8_86(b) { return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(new Uint8Array(fr.result)); fr.onerror = rej; fr.readAsArrayBuffer(b); }); }
+function canvasBlob86(c, mime, q) { return new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error('toBlob')), mime, q)); }
+async function decodeImg86(file) { // a canvas no larger than maxPx on its long side, oriented the way the photo was taken
+  const maxPx = 4000; let w = 0, h = 0, src = null;
+  try { src = await createImageBitmap(file, { imageOrientation: 'from-image' }); w = src.width; h = src.height; } catch (e) { src = null; }
+  if (!src) { const url = URL.createObjectURL(file); try { src = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error('decode')); im.src = url; }); w = src.naturalWidth; h = src.naturalHeight; } finally { setTimeout(() => URL.revokeObjectURL(url), 5000); } }
+  if (!w || !h) throw new Error('empty image');
+  const k = Math.min(1, maxPx / Math.max(w, h)), c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));
+  const cx = c.getContext('2d'); cx.drawImage(src, 0, 0, c.width, c.height); if (src.close) try { src.close(); } catch (e) {} return c; }
+async function imagesToPdf86(files, onStep) { // → Uint8Array of a PDF with one page per image, 150 dpi
+  const doc = await PL.PDFDocument.create(); let n = 0;
+  for (const f of files) { n++; if (onStep) await onStep(n, files.length);
+    const c = await decodeImg86(f), png = PNG_RE86.test(f.type || '') || /\.(png|gif|webp|avif)$/i.test(f.name || '');
+    const bytes = await blobU8_86(await canvasBlob86(c, png ? 'image/png' : 'image/jpeg', 0.9)), img = png ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
+    const w = c.width * 72 / 150, h = c.height * 72 / 150, page = doc.addPage([w, h]); page.drawImage(img, { x: 0, y: 0, width: w, height: h }); c.width = c.height = 1; }
+  doc.setTitle((files[0] && files[0].name || 'Images').replace(/\.[^.]+$/, '')); doc.setProducer('Redline Desk'); return await doc.save(); }
+function pdfName86(files) { const base = (files[0].name || 'Image').replace(/\.[^.]+$/, ''); return (files.length > 1 ? `${base} and ${files.length - 1} more` : base) + '.pdf'; }
+async function imagesAsPdfFile86(files) { try { await busy(files.length > 1 ? `Making a PDF from ${files.length} images…` : 'Making a PDF from the image…');
+    const bytes = await imagesToPdf86(files, async (i, n) => { if (n > 1) await busy(`Adding image ${i} of ${n}…`); }); busy(null); return new File([bytes], pdfName86(files), { type: 'application/pdf' }); }
+  catch (e) { busy(null); console.warn(e); toast(files.length > 1 ? 'One of those images could not be read.' : 'That image could not be read.', 4000); return null; } }
+const openFileV85 = openFile; openFile = async function (file, append) {
+  if (!IMGX86) return openFileV85.apply(this, arguments);
+  const list = Array.isArray(file) ? file.filter(Boolean) : (file ? [file] : []); if (!list.length) return;
+  const imgs = list.filter(isImgFile86), pdfs = list.filter(f => !isImgFile86(f)); let first = true;
+  if (imgs.length) { const f = await imagesAsPdfFile86(imgs); if (!f) return; await openFileV85(f, append); first = false; }
+  for (const p of pdfs) { await openFileV85(p, first ? append : true); first = false; } };
+const addPdfIntoV85 = addPdfInto; addPdfInto = async function (file) {
+  if (!IMGX86) return addPdfIntoV85.apply(this, arguments);
+  const list = Array.isArray(file) ? file.filter(Boolean) : (file ? [file] : []); if (!list.length) return;
+  const imgs = list.filter(isImgFile86), pdfs = list.filter(f => !isImgFile86(f));
+  if (imgs.length) { const f = await imagesAsPdfFile86(imgs); if (f) await addPdfIntoV85(f); }
+  for (const p of pdfs) await addPdfIntoV85(p); };
+const importDocsV85 = importDocs; importDocs = async function (files) { if (!IMGX86) return importDocsV85.apply(this, arguments);
+  const list = [...files], imgs = list.filter(isImgFile86), pdfs = list.filter(f => !isImgFile86(f)); if (imgs.length) { const f = await imagesAsPdfFile86(imgs); if (f) pdfs.unshift(f); } if (pdfs.length) return importDocsV85(pdfs); };
+/* a photo straight from the camera as a page */
+(function camPage86() { const i = document.createElement('input'); i.type = 'file'; i.id = 'fCamPg'; i.accept = 'image/*'; i.setAttribute('capture', 'environment'); i.hidden = true; document.body.appendChild(i);
+  i.onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; if (S.pages && S.pages.length && !S.sample) addPdfInto(f); else openFile(f, false); }; })();
+function photoPage86() { $('fCamPg').click(); }
+function imagesAsPages86() { $('fAdd').click(); }
+/* ---------- export dialog ---------- */
+function parsePages86(txt, n) { const out = new Set(); for (const part of String(txt || '').split(/[,\s]+/)) { if (!part) continue; const m = part.match(/^(\d+)(?:-(\d+))?$/); if (!m) return null; let a = +m[1], b = m[2] ? +m[2] : a; if (a > b) [a, b] = [b, a]; for (let i = a; i <= b; i++) if (i >= 1 && i <= n) out.add(i - 1); } return [...out].sort((x, y) => x - y); }
+async function pageImage86(pg, maxDim, withMarkups, mime) { // like pageCanvas, with the markups optional and a white ground for JPEG
+  const vs = vSize(pg), k = Math.min(8, maxDim / Math.max(vs.w, vs.h), Math.sqrt(2.4e7 / (vs.w * vs.h))), c = document.createElement('canvas'); c.width = Math.max(1, Math.round(vs.w * k)); c.height = Math.max(1, Math.round(vs.h * k)); const cx = c.getContext('2d');
+  cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height);
+  if (pg.src) { const page = await getPdfPage(pg); await page.render({ annotationMode: 3, canvasContext: cx, viewport: page.getViewport({ scale: k, rotation: (pg.baseRot + pg.rot) % 360 }) }).promise; } else paperPaint(cx, pg, k, 0, 0);
+  if (withMarkups) { const M = mul([k, 0, 0, k, 0, 0], rotM(pg)); cx.setTransform(M[0], M[1], M[2], M[3], M[4], M[5]); const p = new CanvasPainter(cx); drawFormText(p, pg); for (const m of S.markups) if (m.page === pg.id && shownOnSheet(m)) drawMarkup(p, m); }
+  const blob = await canvasBlob86(c, mime, mime === 'image/jpeg' ? 0.9 : undefined); c.width = c.height = 1; return blob; }
+const EXP86 = { fmt: 'pdf', pages: 'this', size: 2400, marks: true };
+function exportDialog86() { commitEdit(); const n = S.pages.length; if (!n) return toast('Open a document first.');
+  const st = Object.assign({}, EXP86, store.get('export86', {}));
+  const m = modal(`<h3>Export</h3>
+    <div class="lab" style="margin-top:6px">Format</div><div class="xseg" data-k="fmt"><button class="btn line" data-v="pdf">PDF, editable</button><button class="btn line" data-v="pdfflat">PDF, flattened</button><button class="btn line" data-v="png">PNG</button><button class="btn line" data-v="jpg">JPEG</button></div>
+    <div class="lab" style="margin-top:10px">Pages</div><div class="xseg" data-k="pages"><button class="btn line" data-v="this">This page</button><button class="btn line" data-v="all">All ${n}</button><button class="btn line" data-v="range">Some</button></div>
+    <label id="xRangeF" hidden style="display:block;margin-top:6px">Which pages<input type="text" id="xRange" placeholder="e.g. 1-3, 5" inputmode="numeric" style="width:100%"></label>
+    <div id="xImgOpts"><div class="lab" style="margin-top:10px">Size (long side)</div><div class="xseg" data-k="size"><button class="btn line" data-v="1200">1200 px</button><button class="btn line" data-v="2400">2400 px</button><button class="btn line" data-v="3600">3600 px</button><button class="btn line" data-v="4800">4800 px</button></div>
+    <label class="chk" style="margin-top:10px"><input type="checkbox" id="xMarks"> Include markups</label></div>
+    <p id="xNote" class="muted" style="margin:10px 0 0;font-size:13px"></p>
+    <div class="acts"><button class="btn line" id="xNo">Cancel</button><button class="btn solid" id="xOk">Export</button></div>`);
+  const sty = document.createElement('style'); sty.textContent = '.xseg{display:flex;flex-wrap:wrap;gap:6px}.xseg .btn{height:36px}.xseg .btn[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}'; m.appendChild(sty);
+  const segs = m.querySelectorAll('.xseg'); const sync = () => { for (const sg of segs) { const k = sg.dataset.k; for (const b of sg.querySelectorAll('.btn')) b.setAttribute('aria-pressed', String(b.dataset.v) === String(st[k]) ? 'true' : 'false'); }
+    const img = st.fmt === 'png' || st.fmt === 'jpg'; m.querySelector('#xImgOpts').hidden = !img; m.querySelector('#xRangeF').hidden = st.pages !== 'range'; m.querySelector('#xMarks').checked = !!st.marks;
+    const cnt = st.pages === 'this' ? 1 : st.pages === 'all' ? n : (parsePages86(m.querySelector('#xRange').value, n) || []).length;
+    m.querySelector('#xNote').textContent = img ? (cnt > 1 ? `${cnt} ${st.fmt.toUpperCase()} images in one ZIP file.` : `One ${st.fmt.toUpperCase()} image${st.marks ? ' with the markups drawn on it' : ' of the plain page'}.`) : st.fmt === 'pdf' ? 'Markups stay editable when the PDF is opened in Redline again.' : 'Markups are burned into the pages.'; };
+  for (const sg of segs) sg.onclick = e => { const b = e.target.closest('.btn'); if (!b) return; const k = sg.dataset.k; st[k] = k === 'size' ? +b.dataset.v : b.dataset.v; sync(); };
+  m.querySelector('#xRange').oninput = sync; m.querySelector('#xMarks').onchange = e => { st.marks = e.target.checked; sync(); }; sync();
+  m.querySelector('#xNo').onclick = m.close;
+  m.querySelector('#xOk').onclick = async () => { const idx = st.pages === 'this' ? [S.cur] : st.pages === 'all' ? S.pages.map((_, i) => i) : parsePages86(m.querySelector('#xRange').value, n);
+    if (!idx || !idx.length) { toast('Type the pages to export, like 1-3, 5.'); return; } store.set('export86', { fmt: st.fmt, pages: st.pages === 'range' ? 'this' : st.pages, size: st.size, marks: st.marks }); m.close(); await runExport86(st, idx); }; }
+async function runExport86(st, idx) { const pages = idx.map(i => S.pages[i]), all = idx.length === S.pages.length;
+  if (st.fmt === 'pdf' || st.fmt === 'pdfflat') return savePdf(st.fmt === 'pdfflat', all ? null : pages);
+  const mime = st.fmt === 'png' ? 'image/png' : 'image/jpeg', ext = st.fmt === 'png' ? 'png' : 'jpg', base = safeName().replace(/ - (markup|flattened)$/i, '');
+  try { if (pages.length === 1) { await busy('Rendering the page…'); const blob = await pageImage86(pages[0], st.size, st.marks, mime); busy(null); return saveFile(`${base} - page ${idx[0] + 1}.${ext}`, blob); }
+    const files = []; for (let i = 0; i < pages.length; i++) { await busy(`Rendering page ${i + 1} of ${pages.length}…`); const blob = await pageImage86(pages[i], st.size, st.marks, mime); files.push({ name: `${base} - page ${String(idx[i] + 1).padStart(String(S.pages.length).length, '0')}.${ext}`, data: await blobU8_86(blob) }); }
+    await busy('Packing the ZIP…'); const zip = zipStore(files); busy(null); return saveFile(`${base} - ${pages.length} pages ${ext.toUpperCase()}.zip`, zip); }
+  catch (e) { busy(null); console.warn(e); toast('The page images could not be made.', 4000); } }
+function extraItems86(where) { if (!IMGX86) return [];
+  if (where === 'save') return [{ label: 'Export…', note: 'PDF, PNG or JPEG; one page, a range or all', icon: 'image', fn: exportDialog86 }];
+  if (where === 'doc') return [{ label: 'Add images as pages', note: 'photos become pages; several at once', icon: 'image', fn: imagesAsPages86 }, { label: 'Photo as a new page', note: 'camera', icon: 'camera', fn: photoPage86 }];
+  return []; }
+HELP.push(['Images in, images out', ['Open takes photos and images as well as PDFs: a JPEG, PNG or HEIC becomes a one-page document, and several picked together become one PDF with a page each. Under More, "Add images as pages" and "Photo as a new page" do the same into the document you have open.',
+  'Save, then Export…, makes a PDF (editable or flattened), or PNG or JPEG images of this page, a range or every page, at four sizes, with or without the markups. Several image pages leave together as one ZIP. On the iPad the share sheet lets you Save to Files, AirDrop or send them on.']]);
+Object.assign(RDX, { IMGX86, imagesToPdf86, pageImage86, exportDialog86, runExport86, parsePages86, extraItems86 });
+
+/* ---------- PERSP86 (iPad edition): perspective guides ----------
+   A Perspective tool in the Shapes group. Tap the sheet to drop a vanishing point (up to three per page); drag one to move it;
+   tap one to remove it. Guide lines fan out from every vanishing point (and a horizon joins the first two), drawn on screen only,
+   never into the PDF. With the tool active, dragging draws a straight line that runs exactly toward the nearest vanishing
+   point. With Snap on, the Line, Arrow, Polyline, Polygon and measurement tools, and hold-to-straighten, lock onto a vanishing
+   direction when the stroke is within about 6° of it. Vanishing points are saved with the document (pg.persp). Switch: PERSP86. */
+const PERSP86 = true, PERSP_MAX = 3, PERSP_SNAP = 0.105; /* 6° */
+const perspOf = pg => (pg && pg.persp && Array.isArray(pg.persp.vps) ? pg.persp.vps : []);
+const perspShown = pg => !!(pg && pg.persp && pg.persp.show !== false && perspOf(pg).length);
+function perspSet(pg, vps, show) { if (!pg) return; if (!vps.length) delete pg.persp; else pg.persp = { vps: vps.map(v => ({ x: +v.x.toFixed(2), y: +v.y.toFixed(2) })), show: show !== false }; changed(); }
+/* the vanishing direction nearest to a→b, or null when none is within the snap angle (a, b in page units) */
+function perspDir(a, b, pg, tol) { const vps = perspOf(pg || cur()); if (!vps.length) return null; const L = dist(a, b); if (L < 1e-6) return null; let best = null;
+  for (const v of vps) { const d = dist(a, v); if (d < 1e-6) continue; const ux = (v.x - a.x) / d, uy = (v.y - a.y) / d, dot = ((b.x - a.x) * ux + (b.y - a.y) * uy) / L, ang = Math.acos(Math.max(-1, Math.min(1, Math.abs(dot))));
+    if (ang <= (tol == null ? PERSP_SNAP : tol) && (!best || ang < best.ang)) best = { ang, ux: dot < 0 ? -ux : ux, uy: dot < 0 ? -uy : uy, t: Math.abs((b.x - a.x) * ux + (b.y - a.y) * uy), vp: v }; }
+  return best; }
+function perspProject(a, b, pg, tol) { const d = perspDir(a, b, pg, tol); return d ? { x: a.x + d.ux * d.t, y: a.y + d.uy * d.t } : null; }
+/* snapping for the other tools: only with Snap on, only when the page has vanishing points */
+const snapAngleV85p = snapAngle; snapAngle = function (a, b) { if (PERSP86 && S.snap && perspOf(cur()).length) { const q = perspProject(a, b); if (q) return q; } return snapAngleV85p.apply(this, arguments); };
+const constrainV85p = constrain; constrain = function (a, b, on) { if (PERSP86 && S.snap && perspOf(cur()).length) { const q = perspProject(a, b); if (q) return q; } return constrainV85p.apply(this, arguments); };
+/* guides, in screen pixels, after the page's own overlays */
+const drawOverlaysV85p = drawOverlays; drawOverlays = function (pg, M) { const r = drawOverlaysV85p.apply(this, arguments); try { if (PERSP86 && perspShown(pg)) perspDraw(pg, M); } catch (e) { console.warn(e); } return r; };
+function perspDraw(pg, M) { const vps = perspOf(pg), vs = vSize(pg), on = S.tool === 'persp'; const c = [{ x: 0, y: 0 }, { x: vs.w, y: 0 }, { x: vs.w, y: vs.h }, { x: 0, y: vs.h }].map(q => ap(M, q));
+  const x0 = Math.min(...c.map(q => q.x)), x1 = Math.max(...c.map(q => q.x)), y0 = Math.min(...c.map(q => q.y)), y1 = Math.max(...c.map(q => q.y)); const R = Math.hypot(x1 - x0, y1 - y0) + 50;
+  ctx.save(); ctx.beginPath(); ctx.rect(Math.max(0, x0), Math.max(0, y0), Math.min(W, x1) - Math.max(0, x0), Math.min(H, y1) - Math.max(0, y0)); ctx.clip();
+  const col = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#007AFF';
+  ctx.lineWidth = 1; ctx.strokeStyle = col; ctx.globalAlpha = on ? 0.42 : 0.26; ctx.setLineDash([]);
+  const step = on ? Math.PI / 24 : Math.PI / 12; // 7.5° with the tool in hand, 15° otherwise
+  for (const v of vps) { const s = ap(M, v); ctx.beginPath(); for (let a = 0; a < Math.PI; a += step) { const dx = Math.cos(a) * R, dy = Math.sin(a) * R; ctx.moveTo(s.x - dx, s.y - dy); ctx.lineTo(s.x + dx, s.y + dy); } ctx.stroke(); }
+  if (vps.length >= 2) { const a = ap(M, vps[0]), b = ap(M, vps[1]), dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy) || 1; ctx.globalAlpha = on ? 0.85 : 0.5; ctx.lineWidth = 1.5; ctx.setLineDash([10, 6]); ctx.beginPath(); ctx.moveTo(a.x - dx / L * R, a.y - dy / L * R); ctx.lineTo(b.x + dx / L * R, b.y + dy / L * R); ctx.stroke(); ctx.setLineDash([]); }
+  ctx.restore();
+  // the points themselves, not clipped to the page (a vanishing point often sits off the sheet)
+  ctx.save(); ctx.globalAlpha = 1; vps.forEach((v, i) => { const s = ap(M, v); ctx.beginPath(); ctx.arc(s.x, s.y, on ? 9 : 6, 0, Math.PI * 2); ctx.fillStyle = col; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke();
+    if (on) { ctx.font = '600 11px ' + getComputedStyle(document.body).fontFamily; ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(String(i + 1), s.x, s.y + 0.5); } }); ctx.restore(); }
+/* the tool: capture-phase handlers on the sheet, like the Artist panel's */
+const PG = { g: null };
+TOOLS.splice(TOOLS.findIndex(t => Array.isArray(t) && t[0] === 'polygon') + 1, 0, ['persp', 'Perspective: tap to drop vanishing points, drag to draw lines toward them; with Snap on, other lines lock to them too']);
+IC.persp = '<path d="M3 7h18M3 17h18M12 4L4 20M12 4l8 16M12 4v16"/>';
+HINTS.persp = 'Tap the sheet to drop a vanishing point (up to three). Drag to draw a line that runs straight to the nearest one. Drag a point to move it, tap it to remove it. Turn Snap on and the Line, Arrow and Polyline tools lock to the vanishing directions as well.';
+function perspHitVp(s, pg) { const M = viewM(); let hit = null, hd = 24; perspOf(pg).forEach((v, i) => { const q = ap(M, v), d = Math.hypot(q.x - s.x, q.y - s.y); if (d < hd) { hd = d; hit = i; } }); return hit; }
+(function perspHook() { const st = $('stage'); if (!st) return;
+  st.addEventListener('pointerdown', e => { if (!PERSP86 || S.tool !== 'persp' || e.button > 0) return; if (!e.target || e.target.tagName !== 'CANVAS' || !st.contains(e.target)) return;
+    if (e.pointerType === 'touch' && (S.penSeen || !S.fingerDraw)) return; /* fingers pan, as with the drawing tools */
+    if (PG.g) return; e.stopPropagation(); e.preventDefault(); try { view.setPointerCapture(e.pointerId); } catch (err) {}
+    const s = pos(e); if (S.scroll) { const en = layout().find(q => q.i !== S.cur && s.x >= q.x && s.x <= q.x + q.w && s.y >= q.y && s.y <= q.y + q.h); if (en) switchCur(en, true); }
+    const pg = cur(), p = toPage(s.x, s.y), hit = perspHitVp(s, pg);
+    PG.g = { id: e.pointerId, s0: s, p0: p, pg, moved: false, vp: hit, t0: performance.now() }; if (hit != null) { PG.g.orig = perspOf(pg).map(v => ({ ...v })); pushUndo(); PG.g.pushed = true; }
+    requestDraw(); }, true);
+  const move = e => { const g = PG.g; if (!g || e.pointerId !== g.id) return; e.stopPropagation(); const s = pos(e); if (!g.moved && Math.hypot(s.x - g.s0.x, s.y - g.s0.y) > 6) g.moved = true; if (!g.moved) return;
+    const p = toPage(s.x, s.y);
+    if (g.vp != null) { const vps = perspOf(g.pg).map(v => ({ ...v })); vps[g.vp] = { x: p.x, y: p.y }; g.pg.persp = { vps, show: g.pg.persp ? g.pg.persp.show !== false : true }; requestDraw(); return; }
+    const q = perspOf(g.pg).length ? (perspProject(g.p0, p, g.pg, Math.PI) || p) : constrainV85p(g.p0, p, e.shiftKey || S.lock); S.draft = { type: 'line', pts: [{ x: g.p0.x, y: g.p0.y }, q], style: styleFor('line') }; requestDraw(); };
+  const up = e => { const g = PG.g; if (!g || e.pointerId !== g.id) return; e.stopPropagation(); PG.g = null; try { view.releasePointerCapture(e.pointerId); } catch (err) {}
+    const pg = g.pg;
+    if (g.vp != null) { if (!g.moved) { if (g.pushed) { const sn = S.undo.pop(); void sn; } pushUndo(); const vps = perspOf(pg).filter((_, i) => i !== g.vp); perspSet(pg, vps, pg.persp && pg.persp.show); toast(vps.length ? 'Vanishing point removed' : 'Perspective guides cleared'); } else { changed(); } requestDraw(); return; }
+    if (!g.moved) { const vps = perspOf(pg); if (vps.length >= PERSP_MAX) { toast(`Three vanishing points is the most. Tap one to remove it, or drag it.`); return; } pushUndo(); perspSet(pg, [...vps, { x: g.p0.x, y: g.p0.y }], true); toast(vps.length === 0 ? 'Vanishing point 1. Tap for a second, drag to draw lines toward it.' : `Vanishing point ${vps.length + 1}`); return; }
+    const d = S.draft; S.draft = null; if (!d || dist(d.pts[0], d.pts[1]) * S.view.s < 4) { requestDraw(); return; }
+    const m = newMarkup('line', [d.pts[0], d.pts[1]]); addMarkup(m, true, false); };
+  view.addEventListener('pointermove', move, true); view.addEventListener('pointerup', up, true); view.addEventListener('pointercancel', e => { if (PG.g && e.pointerId === PG.g.id) { PG.g = null; S.draft = null; requestDraw(); } }, true); })();
+/* the tool's property bar: show/hide guides and clear */
+function perspItems() { const pg = cur(), vps = perspOf(pg); return [{ label: perspShown(pg) ? 'Hide the guides' : 'Show the guides', icon: 'layers', fn: () => { if (pg.persp) { pg.persp.show = !perspShown(pg); changed(); } } }, { label: 'Clear the vanishing points on this page', icon: 'trash', fn: () => { pushUndo(); perspSet(pg, [], true); toast('Perspective guides cleared'); } }, { label: 'Copy these vanishing points to every page', icon: 'copy', fn: () => { if (!vps.length) return toast('Drop a vanishing point first.'); pushUndo(); for (const q of S.pages) if (q !== pg) perspSet(q, vps.map(v => ({ ...v })), true); toast(`Copied to ${S.pages.length - 1} other page${S.pages.length === 2 ? '' : 's'}`); } }]; }
+const ctxExtrasV85p = typeof ctxExtras === 'function' ? ctxExtras : null;
+if (ctxExtrasV85p) ctxExtras = function (items, sm, one, s) { const r = ctxExtrasV85p.apply(this, arguments) || items; try { if (PERSP86 && !sm.length && perspOf(cur()).length) { r.push('-', { head: 'Perspective' }, ...perspItems()); } } catch (e) {} return r; };
+HELP.push(['Perspective guides', ['The Perspective tool sits with the shapes. Tap the sheet to drop a vanishing point, up to three on a page; the guide lines fan out from each one and a horizon joins the first two. Drag a point to move it, tap it to remove it. The guides are on screen only; they never print or export.',
+  'With the Perspective tool, dragging draws a line that runs exactly to the nearest vanishing point. With Snap on, the Line, Arrow, Polyline and Polygon tools and hold-to-straighten lock onto a vanishing direction whenever you are within about six degrees of it, so sketched edges land in perspective. Press and hold on the sheet for Hide the guides, Clear, or Copy these vanishing points to every page.']]);
+Object.assign(RDX, { PERSP86, perspOf, perspSet, perspDir, perspProject, perspItems });
+
 /* ---------- wiring ---------- */
 function nameDialog() { const m = modal(`<h3>Your name on markups</h3><p>Saved with each markup and shown in the markup list and on dated stamps.</p><label>Name<input type="text" id="auName" maxlength="60" autocomplete="name"></label>
   <div class="acts"><button class="btn line" id="auNo">Cancel</button><button class="btn solid" id="auOk">Save name</button></div>`); const i = m.querySelector('#auName'); i.value = S.author;
@@ -8831,14 +8991,14 @@ function init() {
   $('bLock').onclick = () => { S.lock = !S.lock; store.set('lock', S.lock); syncUI(); toast(S.lock ? '45° lock on: lines snap to 45° steps and only get longer or shorter when you drag an end' : '45° lock off', 3200); };
   $('pE0').onchange = e => setProp('e0', e.target.value); $('pE1').onchange = e => setProp('e1', e.target.value); $('pS0').onchange = e => setProp('s0', +e.target.value); $('pS1').onchange = e => setProp('s1', +e.target.value);
   $('pPath').onchange = e => setProp('path', e.target.value); $('pPaper').onchange = e => setProp('paper', e.target.value); $('pNib').onchange = e => { S.pen.nib = +e.target.value; store.set('penNib', S.pen.nib); };
-  $('fOpen').onchange = e => { openFile(e.target.files[0], false); e.target.value = ''; }; $('fAdd').onchange = e => { addPdfInto(e.target.files[0]); e.target.value = ''; }; $('fImg').onchange = e => { insertImage(e.target.files[0]); e.target.value = ''; }; $('fCam').onchange = e => { insertImage(e.target.files[0]); e.target.value = ''; }; $('fStk').onchange = e => { addStickers([...e.target.files]); e.target.value = ''; };
+  $('fOpen').onchange = e => { const fs = [...e.target.files]; e.target.value = ''; openFile(fs.length > 1 ? fs : fs[0], false); }; $('fAdd').onchange = e => { const fs = [...e.target.files]; e.target.value = ''; addPdfInto(fs.length > 1 ? fs : fs[0]); }; $('fImg').onchange = e => { insertImage(e.target.files[0]); e.target.value = ''; }; $('fCam').onchange = e => { insertImage(e.target.files[0]); e.target.value = ''; }; $('fStk').onchange = e => { addStickers([...e.target.files]); e.target.value = ''; };
   $('pPen').onchange = e => { S.pen.kind = e.target.value; store.set('penKind', S.pen.kind); syncUI(); }; $('pSmooth').onchange = e => { S.pen.smooth = +e.target.value; store.set('penSmooth', S.pen.smooth); };
   initDock(); initExtras(); initKeep(); initFiles(); initCo(); initMore(); initNotes(); initLook(); initFmt(); initPanels(); initLayout2(); wheelInit(); gridInit(); v46Init(); v47Init(); v48Init(); v49Init(); v50Init(); v51Init();
   const saveItems = () => [{ label: 'Save PDF', note: 'markups stay editable', icon: 'save', fn: () => savePdf(false) }, { label: 'Save flattened PDF', note: 'markups burned in', icon: 'save', fn: () => savePdf(true) }, { label: 'Save flattened PDF with a markup summary', note: 'for printing', icon: 'save', fn: () => savePdf('summary') }, { label: 'Save to\u2026 or share', note: 'Files, iCloud Drive, Mail, Procore', icon: 'share', fn: () => sharePdf() }, '-',
-    { label: 'Reports (PDF)', note: 'items, people, due dates, quantities', icon: 'report', fn: reportsDialog }, { label: 'Export markup list (CSV)', icon: 'list', fn: saveCsv }, { label: 'Export the change log (CSV)', icon: 'list', fn: saveAudit }, { label: 'Save this page as an image (PNG)', icon: 'image', fn: savePng }];
+    { label: 'Reports (PDF)', note: 'items, people, due dates, quantities', icon: 'report', fn: reportsDialog }, { label: 'Export markup list (CSV)', icon: 'list', fn: saveCsv }, { label: 'Export the change log (CSV)', icon: 'list', fn: saveAudit }, ...extraItems86('save'), { label: 'Save this page as an image (PNG)', icon: 'image', fn: savePng }];
   window.saveItems = saveItems; $('bSave').onclick = () => menu($('bSave'), saveItems());
   const moreItems = () => [{ label: 'Find a feature\u2026', note: TOUCH ? '' : '\u2318K', icon: 'search', fn: finderDialog }, '-',
-    { head: 'This document' }, { label: 'Add a PDF into this document', note: 'start, end, or at this page', icon: 'addpdf', fn: () => $('fAdd').click() }, { label: 'Notes', note: S.notes && S.notes.length ? String(S.notes.length) : '', icon: 'note', fn: () => rightOpen('notesPanel') }, { label: 'Tool settings panel', note: 'everything about the current tool', icon: 'sliders', fn: () => rightOpen('toolPanel') }, { label: 'Sheet numbers, groups and bookmarks', note: 'automatic', icon: 'bookmark', fn: sheetToolsDialog }, { label: 'Layers', icon: 'layers', fn: layersDialog }, { label: 'Bookmarks', icon: 'bookmark', note: S.bookmarks && S.bookmarks.length ? String(S.bookmarks.length) : '', fn: bookmarksDialog }, { label: 'Find and replace in your markups', icon: 'text', fn: findReplaceDialog },
+    { head: 'This document' }, { label: 'Add a PDF into this document', note: 'start, end, or at this page', icon: 'addpdf', fn: () => $('fAdd').click() }, ...extraItems86('doc'), { label: 'Notes', note: S.notes && S.notes.length ? String(S.notes.length) : '', icon: 'note', fn: () => rightOpen('notesPanel') }, { label: 'Tool settings panel', note: 'everything about the current tool', icon: 'sliders', fn: () => rightOpen('toolPanel') }, { label: 'Sheet numbers, groups and bookmarks', note: 'automatic', icon: 'bookmark', fn: sheetToolsDialog }, { label: 'Layers', icon: 'layers', fn: layersDialog }, { label: 'Bookmarks', icon: 'bookmark', note: S.bookmarks && S.bookmarks.length ? String(S.bookmarks.length) : '', fn: bookmarksDialog }, { label: 'Find and replace in your markups', icon: 'text', fn: findReplaceDialog },
     { head: 'Side by side' }, { label: S.split ? 'Close the second view' : 'Open a second view of this document', icon: 'split', fn: toggleSplit }, { label: 'Open another document beside this one', icon: 'split', fn: p2DocDialog },
     { head: 'Insert' }, { label: 'Image from Files', icon: 'image', fn: () => $('fImg').click() }, { label: 'Take a photo', icon: 'camera', fn: () => $('fCam').click() }, { label: 'Stickers', icon: 'sticker', fn: stickerDialog }, { label: 'Signature, initials and date', icon: 'sign', fn: signDialog },
     { head: 'From other apps' }, { label: 'Make markups from other apps editable', icon: 'addpdf', fn: () => scanForeign(true) }, { label: "Merge markups from a reviewer's copy", icon: 'addpdf', fn: () => $('fMerge').click() }, { label: 'Read the text on scanned sheets (Claude)', icon: 'ocr', claude: true, fn: ocrDialog }, { label: 'Ask Claude about this sheet', icon: 'ask', claude: true, fn: () => $('askBtn').click() },

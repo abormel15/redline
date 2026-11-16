@@ -53,3 +53,21 @@ serves Ishita and Mihai.
   stroked version in Chromium (same coverage within 2%), PDF export editable + flattened checked.
 - Open: highlighter hold-to-straighten reported not working on the iPad; the same code passes t111a's pen and highlighter hold
   checks on this build. Waiting for an A/B against the Claude version on the same iPad.
+
+## Nov 16 2026 — V86 of the iPad edition (label "86 · Nov 16 2026 · iPad edition")
+New parts live in `rd-build/parts/` and are inserted before the wiring (same scope as the V85 parts):
+- `app76.js` IMGX86 — images in: Open / Files home Bring in / Add take JPEG, PNG, HEIC, WebP, GIF… (inputs patched to accept
+  images and several files). One image → one-page document; several → one PDF, a page each (150 dpi, JPEG q0.9 or PNG for
+  transparent types, long side ≤ 4000 px, EXIF orientation via createImageBitmap). "Add images as pages" and "Photo as a new page"
+  (camera input #fCamPg) under More › This document. Library import of images becomes one document.
+  Images out: Save › Export… — PDF editable/flattened (reuses savePdf with a page list), PNG/JPEG of this page / all / a range at
+  1200–4800 px, with or without markups (pageImage86, canvas area capped at 24 MP); several image pages → one ZIP via zipStore.
+  Choices remembered in store 'export86'.
+- `app77.js` PERSP86 — Perspective tool after Polygon (TOOLS/IC/HINTS). Capture-phase pointer handlers on #stage (pattern of the
+  Artist panel): tap drops a vanishing point (max 3), drag draws a line aimed at the nearest point, drag a point moves it, tap a point
+  removes it. Guides drawn by a drawOverlays wrapper (fan every 15°, 7.5° with the tool active, horizon through points 1–2),
+  screen only. snapAngle and constrain wrappers snap any tool to a vanishing direction within 6° when Snap is on. pg.persp saved
+  with the document (docState stores pages whole); not written into exported PDFs. ctxExtras wrapper adds Hide/Clear/Copy to
+  every page when the page has points and nothing is selected.
+- Tests: `t121.js` (images in, Export dialog PNG/JPEG/ZIP/PDF, perspective: drop/draw/move/remove, Snap on/off, reload, menu).
+  t120, t111c ALL OK; t111a/b identical to the V85 baseline.
