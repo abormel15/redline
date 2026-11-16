@@ -96,3 +96,11 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   (Mar 14–17), Fourth of July (Jul 1–4) and "Wizard's study" (manual only; parchment/scarlet, midnight/old gold — colors only,
   no franchise names, crests or characters). applyLook wrapper sets the vars inline on :root, a 3px stripe under #top, theme-color
   metas follow the panel color; off removes everything and restores the accent. Hourly re-check for auto. Test t125.js.
+- `app81.js` FESTDECO86 — decorations for the looks: a 76px banner scene at the top of the Files home (gradient sky/parchment
+  per look, light/dark; ornaments: falling leaves/acorns, snow + a string of blinking lights, bats + moon + cobweb + pumpkins,
+  fireworks, rising hearts, shamrocks, bunting, candles with flames and sparks), a greeting; a thin ornament strip along the
+  bottom of #top (z-index −1 inside an isolated #top); browser-tab icon per look; tool icon swaps re-rendered on the rail
+  (Wizard's study: pen → quill, stamp → wax seal; Christmas: stamp → gift); parchment noise texture + candle-glow pulse for the
+  wizard look. Settings › "Decorations with the festive look": Animated / Still / Colors only; prefers-reduced-motion → Still.
+  Animations are transform/opacity only, ≤ ~20 small nodes, nothing over the sheet. Version label now carries a build serial
+  (86.N) so a device's build can be told apart. Test t126.js. The home-screen app icon cannot change after install.

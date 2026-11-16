@@ -5,7 +5,8 @@
    relabels the build, appends the theme stylesheet and a small PWA bootstrap. No app code is edited."""
 import re, shutil, pathlib, hashlib, sys, datetime
 SRC = pathlib.Path('/home/claude/src85'); OUT = pathlib.Path('/home/claude/rd'); HERE = pathlib.Path(__file__).parent
-LABEL = sys.argv[1] if len(sys.argv) > 1 else '86 · Nov 16 2026 · iPad edition'
+SERIAL = HERE.joinpath('serial.txt'); n = int(SERIAL.read_text() or '0') + 1 if SERIAL.exists() else 1; SERIAL.write_text(str(n))
+LABEL = sys.argv[1] if len(sys.argv) > 1 else f'86.{n} · {datetime.date.today().strftime("%b %d %Y").replace(" 0", " ")} · iPad edition'
 html = SRC.joinpath('index.html').read_text()
 
 # 1. the artifact skeleton head -> a real head with PWA tags (keep the same reset rules)
