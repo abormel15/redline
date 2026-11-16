@@ -88,3 +88,6 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   baselines, segments split at column gaps, anchors by nearest line/char, start→end of line, full lines between within the
   drag's column, last line to the end point; box selection kept as RDX.textInRectBox86 fallback). Used by Select text and the
   highlighter's Text mode. Test `t123.js`.
+- TFLOW86 columns: a gap inside a row is a column gutter when it is > 3h wide, or > 0.8h and the same x stays free of text in
+  ≥ 50% of the straddling rows nearby (3 sample points across the gap); then the row is split and each side is its own line.
+  Narrow gutters (≈1.6h) split; a single justified row with wide spaces does not. Fixture fx/cols.pdf, test t124.js.
