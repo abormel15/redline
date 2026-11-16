@@ -63,6 +63,13 @@ for name, o, n, why in mod.PATCHES:
     body = body.replace(o, n)
     print('patched:', name)
 
+# 3c. SYNC86: on the iPad edition the account is the user's own Supabase project, not Claude's storage; every user-facing
+#     "Claude account" becomes "Redline account" (the code paths are the same V85 account layer, see parts/app84.js)
+RENAMES = [('your Claude account', 'your Redline account'), ('my Claude account', 'my Redline account'), ('the Claude account', 'the Redline account'), ('Claude account', 'Redline account')]
+for a, b in RENAMES:
+    k = body.count(a); body = body.replace(a, b); print(f'renamed {k:3d}× {a!r} -> {b!r}')
+assert 'Claude account' not in body
+
 # 4. theme + PWA bootstrap at the very end of the body (after every static style, so it wins ties)
 theme = HERE.joinpath('theme.css').read_text()
 boot = HERE.joinpath('boot.js').read_text()

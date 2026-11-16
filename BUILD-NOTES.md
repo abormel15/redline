@@ -116,3 +116,19 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   another sheet's number get a dotted underline (More › Hide/Show sheet links); tapping one with Select/Pan/Marquee opens a menu
   "Go to A-5.1 · WALL SECTIONS / Sheet index / Hide sheet links". Links are computed per page on demand and cached (SL),
   reset on page change. Fixture fx/sheets.pdf, test t127.js.
+- `app84.js` SYNC86 — the Redline account on the user's own Supabase project (qionjysqxjgddoepknaq). V85's whole account layer
+  (CL: connect/enable/push/pull, settings, prefs2, kit, thumbnails, Files cards, newer-copy checks) is reused unchanged; this part
+  hands it four objects backed by Supabase — db → table public.kv (user_id, path, data jsonb; doc get/set/update/delete,
+  collection get limited to d_* rows), assets → storage bucket rd-assets (<uid>/<id>), user/permissions → the signed-in user,
+  always granted. Sign-in: email + 6-digit code (/auth/v1/otp then /verify; a magic-link #access_token hash is picked up too);
+  session in store 'sb86' (PREF_SKIP), refreshed 2 min before expiry and on a 401; a dead refresh token signs out with a toast.
+  PDFs stay on each device by default: upSource returns { enc:'none', fp: sha256 } and cloudPush records fp (patch); another
+  device matches an opened PDF by fingerprint (openFile wrapper → "This PDF has markups in your account") or asks for the PDF
+  when a document is opened from Files ("Choose its PDF", fPick86; a different file is flagged). Background pulls of such
+  documents fail quietly (pullFail → card "markups in your account · tap to choose its PDF"). Settings › Redline account:
+  Sign in / signed in as / Sign out / "Also keep the PDFs in the account" (sbPdfsSet: re-sends sources). Files › More offers
+  Sign in when there is no session; cloudEnable with no session opens the sign-in dialog. Build renames every "Claude
+  account" string to "Redline account". sw.js now leaves cross-origin requests alone (it was caching API answers, which
+  made a reload read a stale "sync off"). SQL for the project: build/supabase.sql. Test t128.js against fakesb.js (a stand-in
+  for the auth/REST/storage endpoints; two to four browser contexts as devices). Not tested here: the real Supabase project
+  end to end (needs an emailed code), the picker scenario (the 4th test context died in the rig).

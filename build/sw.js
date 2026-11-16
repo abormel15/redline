@@ -12,6 +12,8 @@ self.addEventListener('message', e => { if (e.data === 'skipWaiting') self.skipW
 self.addEventListener('fetch', e => {
   const req = e.request; if (req.method !== 'GET') return;
   const url = new URL(req.url);
+  // only this site is cached; the account (Supabase) and anything else live go straight to the network
+  if (url.origin !== location.origin) return;
   if (url.origin === location.origin && (req.mode === 'navigate' || /index\.html$/.test(url.pathname) || url.pathname.endsWith('/'))) {
     // the page: network first, cache fallback
     e.respondWith(fetch(req, { cache: 'no-cache' }).then(r => { const copy = r.clone(); caches.open(SHELL).then(c => c.put('index.html', copy)); return r; })

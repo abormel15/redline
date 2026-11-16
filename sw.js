@@ -1,7 +1,7 @@
 /* Redline Desk — offline cache. The app shell and the PDF libraries are stored on install; the page itself is fetched
    from the network first so updates arrive, with the cached copy used when offline. Fonts and anything else fetched
    while online are kept for later. Version is replaced by the build. */
-const VERSION = 'd3e967d0a9';
+const VERSION = '18a6ee3547';
 const SHELL = 'rd-shell-' + VERSION, RUNTIME = 'rd-runtime';
 const PRECACHE = ['./', 'index.html', 'manifest.webmanifest', 'lib/pdf.min.js', 'lib/pdf-lib.min.js', 'lib/pdf.worker.min.js',
   'lib/standard_fonts/LiberationSans-Regular.ttf', 'lib/standard_fonts/LiberationSans-Bold.ttf', 'lib/standard_fonts/LiberationSans-Italic.ttf', 'lib/standard_fonts/LiberationSans-BoldItalic.ttf',
@@ -12,6 +12,8 @@ self.addEventListener('message', e => { if (e.data === 'skipWaiting') self.skipW
 self.addEventListener('fetch', e => {
   const req = e.request; if (req.method !== 'GET') return;
   const url = new URL(req.url);
+  // only this site is cached; the account (Supabase) and anything else live go straight to the network
+  if (url.origin !== location.origin) return;
   if (url.origin === location.origin && (req.mode === 'navigate' || /index\.html$/.test(url.pathname) || url.pathname.endsWith('/'))) {
     // the page: network first, cache fallback
     e.respondWith(fetch(req, { cache: 'no-cache' }).then(r => { const copy = r.clone(); caches.open(SHELL).then(c => c.put('index.html', copy)); return r; })
