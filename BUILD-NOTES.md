@@ -104,3 +104,15 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   wizard look. Settings › "Decorations with the festive look": Animated / Still / Colors only; prefers-reduced-motion → Still.
   Animations are transform/opacity only, ≤ ~20 small nodes, nothing over the sheet. Version label now carries a build serial
   (86.N) so a device's build can be told apart. Test t126.js. The home-screen app icon cannot change after install.
+- `app82.js` TREE86 — bring in a whole folder structure: New › "Bring in a folder" and Files › More › "Bring in a folder"
+  (desktop: folder picker via webkitdirectory; iPad: a ZIP of the folder, because Safari has no folder picker), and dragging a
+  folder or a ZIP onto Files. Subfolders become folders (nested, under the current folder), PDFs land in theirs, images in one
+  folder become one document, hidden files / __MACOSX / non-documents are skipped; a toast sums up what came in. Test t127.js
+  (fixture fx/tree.zip).
+- `app83.js` SHEETS86 — sheet-set basics. More › "Name the pages from the title blocks": reads each page's text, ignores
+  strings common to ≥ 60% of pages (project, firm), picks the sheet number (A-2.1, S-1.0, M101 …) and the title from the
+  title-block area, sets pg.label / pg.sheetTitle (saved with the document; shown in the Pages panel and page box). "Sheet
+  index" dialog: filter by number or title, tap to jump (Back step recorded). Linked callouts: tokens on a page that match
+  another sheet's number get a dotted underline (More › Hide/Show sheet links); tapping one with Select/Pan/Marquee opens a menu
+  "Go to A-5.1 · WALL SECTIONS / Sheet index / Hide sheet links". Links are computed per page on demand and cached (SL),
+  reset on page change. Fixture fx/sheets.pdf, test t127.js.

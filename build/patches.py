@@ -47,4 +47,13 @@ function bandPts(pts, W) {""",
   "{ label: 'Add a PDF into this document', note: 'start, end, or at this page', icon: 'addpdf', fn: () => $('fAdd').click() },",
   "{ label: 'Add a PDF into this document', note: 'start, end, or at this page', icon: 'addpdf', fn: () => $('fAdd').click() }, ...extraItems86('doc'),",
   'Add images as pages, Photo as a new page'),
+
+ ('TREE86: Bring in a folder in the New menu',
+  "add('Bring in PDFs', 'Drawings and documents from the Files app. Pick one or several.', () => $('fImport').click());",
+  "add('Bring in PDFs or photos', 'Drawings, documents and photos from the Files app. Pick one or several.', () => $('fImport').click()); add('Bring in a folder', 'A whole folder of drawings, subfolders and all. On the iPad, a ZIP of it.', bringInFolder);",
+  'whole folder trees'),
+ ('TREE86: Bring in a folder in the Files More menu',
+  "{ label: 'Restore from a backup', icon: 'open', fn: () => $('fRestore').click() }, '-',",
+  "{ label: 'Restore from a backup', icon: 'open', fn: () => $('fRestore').click() }, { label: 'Bring in a folder', note: 'subfolders become folders', icon: 'folder', fn: bringInFolder }, '-',",
+  'same action from More'),
 ]
