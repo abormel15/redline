@@ -14,7 +14,7 @@ self.addEventListener('fetch', e => {
   const url = new URL(req.url);
   if (url.origin === location.origin && (req.mode === 'navigate' || /index\.html$/.test(url.pathname) || url.pathname.endsWith('/'))) {
     // the page: network first, cache fallback
-    e.respondWith(fetch(req).then(r => { const copy = r.clone(); caches.open(SHELL).then(c => c.put('index.html', copy)); return r; })
+    e.respondWith(fetch(req, { cache: 'no-cache' }).then(r => { const copy = r.clone(); caches.open(SHELL).then(c => c.put('index.html', copy)); return r; })
       .catch(() => caches.match('index.html', { ignoreSearch: true })));
     return;
   }
