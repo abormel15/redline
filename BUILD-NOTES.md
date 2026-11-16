@@ -77,3 +77,10 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   plumb, and level when fewer than two points; no angle limit), and a penPt wrapper keeps pen/highlighter strokes on one guide —
   free for the first 20 px, then the direction is read from start to there, the first points are laid on it, and the last point
   (added by strokeEnd after it clears the draft) is projected through g.pa/g.pdir. Off: nothing snaps to the guides.
+- `app78.js` HLMODE86 — "Highlight: Draw | Text" switch on the highlighter bar (#hlModeF after #hlStraightF; store 'hlText').
+  Text: capture-phase handlers (pattern of app77) run the Select-text flow — primeText, textInRect / wordAt — and apply a
+  tmark kind 'hl' directly in the highlighter's color/opacity (hlTextApply), no menu. Lines field hidden in Text mode.
+  DIAG86 — Settings › "Stroke diagnostics" (store 'diag86'): wrappers on strokeStart/holdCheck/trySnap/strokeEnd record pointer
+  type, points, hold time, other pointers that landed mid-stroke, and re-run trySnap's own tests to name the failing one; a toast
+  after each stroke, last 12 in RDX.DIAG.log and shown in Settings. For the open "highlighter will not straighten on the iPad".
+  Tests: `t122.js`.
