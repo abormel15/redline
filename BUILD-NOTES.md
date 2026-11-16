@@ -71,3 +71,9 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   every page when the page has points and nothing is selected.
 - Tests: `t121.js` (images in, Export dialog PNG/JPEG/ZIP/PDF, perspective: drop/draw/move/remove, Snap on/off, reload, menu).
   t120, t111c ALL OK; t111a/b identical to the V85 baseline.
+- Same day, after the first iPad try: the guide fan is one density now (every 10°, any tool). Perspective snapping is no longer tied
+  to the Snap button: a **Guides** button (#bPerspA, store 'perspAssist', device setting) sits after Snap and shows whenever the
+  page has vanishing points. On: snapAngle/constrain lock every dragged line to the nearest guide direction (rays to the points,
+  plumb, and level when fewer than two points; no angle limit), and a penPt wrapper keeps pen/highlighter strokes on one guide —
+  free for the first 20 px, then the direction is read from start to there, the first points are laid on it, and the last point
+  (added by strokeEnd after it clears the draft) is projected through g.pa/g.pdir. Off: nothing snaps to the guides.
