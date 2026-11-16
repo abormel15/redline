@@ -84,3 +84,7 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   type, points, hold time, other pointers that landed mid-stroke, and re-run trySnap's own tests to name the failing one; a toast
   after each stroke, last 12 in RDX.DIAG.log and shown in Settings. For the open "highlighter will not straighten on the iPad".
   Tests: `t122.js`.
+- `app79.js` TFLOW86 — text selection flows like a word processor (textInRect wrapped by textInFlow86: lines from item
+  baselines, segments split at column gaps, anchors by nearest line/char, start→end of line, full lines between within the
+  drag's column, last line to the end point; box selection kept as RDX.textInRectBox86 fallback). Used by Select text and the
+  highlighter's Text mode. Test `t123.js`.
