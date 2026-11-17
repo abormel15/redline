@@ -155,3 +155,7 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   touch/Pencil hold ~400 ms to lift (a hold with no move still opens the card menu; a quick swipe scrolls); drop on folder cards
   or on the breadcrumb (Projects / parent folder); a multi-selection drags together (badge); same bookkeeping as Move to a
   folder; cycle guard. Thumbnail images are made non-draggable (a native image drag cancelled the pointer). Test t131.js.
+- `app88.js` SPLIT86 — two documents side by side: tapping a side to edit it no longer flips the sides every other time.
+  Cause: p2SwapDocs toggled the swap class, but openDoc → resetDocExtras → closeSplit had already reset S.swapSides, so the
+  toggle started from the wrong baseline. Now the arrangement is remembered before the swap and set explicitly. Test t132.js
+  (three switches; fails with SPLIT86 off, passes on).
