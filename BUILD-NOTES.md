@@ -120,7 +120,10 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   (CL: connect/enable/push/pull, settings, prefs2, kit, thumbnails, Files cards, newer-copy checks) is reused unchanged; this part
   hands it four objects backed by Supabase — db → table public.kv (user_id, path, data jsonb; doc get/set/update/delete,
   collection get limited to d_* rows), assets → storage bucket rd-assets (<uid>/<id>), user/permissions → the signed-in user,
-  always granted. Sign-in: email + 6-digit code (/auth/v1/otp then /verify; a magic-link #access_token hash is picked up too);
+  always granted. Sign-in: email + password (/auth/v1/token?grant_type=password). Supabase only lets email templates be edited
+  with custom SMTP, so the 6-digit-code route is parked (sbSendCode/sbVerify kept). Create account = /signup (one confirmation
+  link, default template); Forgot/never set a password = /recover → the emailed link lands on the site with #access_token…
+  &type=recovery, which boot picks up (sbPickHash), connects, and opens "Choose your password" (PUT /auth/v1/user);
   session in store 'sb86' (PREF_SKIP), refreshed 2 min before expiry and on a 401; a dead refresh token signs out with a toast.
   PDFs stay on each device by default: upSource returns { enc:'none', fp: sha256 } and cloudPush records fp (patch); another
   device matches an opened PDF by fingerprint (openFile wrapper → "This PDF has markups in your account") or asks for the PDF
@@ -129,6 +132,7 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   Sign in / signed in as / Sign out / "Also keep the PDFs in the account" (sbPdfsSet: re-sends sources). Files › More offers
   Sign in when there is no session; cloudEnable with no session opens the sign-in dialog. Build renames every "Claude
   account" string to "Redline account". sw.js now leaves cross-origin requests alone (it was caching API answers, which
-  made a reload read a stale "sync off"). SQL for the project: build/supabase.sql. Test t128.js against fakesb.js (a stand-in
-  for the auth/REST/storage endpoints; two to four browser contexts as devices). Not tested here: the real Supabase project
-  end to end (needs an emailed code), the picker scenario (the 4th test context died in the rig).
+  made a reload read a stale "sync off"). SQL for the project: build/supabase.sql. Tests t128.js (create account by link, password sign-in on a second device, wrong
+  password, cross-device recognition, newer copy, token refresh, PDFs-on upload, third device, sign-out) and t129.js (forgot-
+  password link → password dialog, Choose-its-PDF picker incl. wrong-file warning) against fakesb.js, a stand-in for the
+  auth/REST/storage endpoints. Not tested here: the real Supabase project end to end (needs the user's emails).
