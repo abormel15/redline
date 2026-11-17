@@ -8529,7 +8529,7 @@ try { HELP.push(['Choosing what goes in a report', ['Every report that lists mar
 Object.assign(RDX, { reportChooser, reportDialog, runReport, RC_FOR, rcKind, RF: () => RF_ONLY });
 
 /* ---------- V81: hold-to-straighten sign, and which version is running ---------- */
-const BUILD = '86.31 · Nov 16 2026 · iPad edition';
+const BUILD = '86.32 · Nov 16 2026 · iPad edition';
 try { const st = document.createElement('style'); st.textContent = `#snapCue{position:fixed;z-index:60;pointer-events:none;padding:6px 12px;border-radius:999px;background:#17212b;color:#fff;font:600 14px var(--ui,system-ui);box-shadow:0 2px 10px #0004;opacity:0;transform:scale(.6);transition:opacity .12s,transform .12s;white-space:nowrap}
 #snapCue.on{opacity:1;transform:scale(1);animation:snapPop .32s ease-out}@keyframes snapPop{0%{transform:scale(.6)}55%{transform:scale(1.15)}100%{transform:scale(1)}}`; document.head.appendChild(st); } catch (e) {}
 // the sign never outlives the stroke, whatever ends it
@@ -9110,8 +9110,9 @@ function festActive() { const v = store.get('fest', 'off'); if (!FEST86 || v ===
 function festDark() { const t = document.documentElement.dataset.theme; if (t === 'dark') return true; if (t === 'light') return false; try { return matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) { return false; } }
 let festStyle = null;
 function festApply() { const root = document.documentElement, id = festActive(); const metas = [...document.querySelectorAll('meta[name="theme-color"]')];
-  if (!id) { for (const k of FEST_VARS) if (root.style.getPropertyValue('--' + k) && k !== 'accent' && k !== 'sat' && k !== 'sab') root.style.removeProperty('--' + k); if (root.dataset.festAccent) { root.style.removeProperty('--accent'); delete root.dataset.festAccent; applyLookV85f(); } delete root.dataset.fest; if (festStyle) festStyle.textContent = ''; metas.forEach(mt => { if (mt.dataset.orig) mt.content = mt.dataset.orig; }); return; }
-  const F = FESTS[id], pal = festDark() ? F.dark : F.light; for (const k of FEST_VARS) root.style.setProperty('--' + k, pal[k]); root.dataset.fest = id; root.dataset.festAccent = '1';
+  if (!id) { for (const k of FEST_VARS) if (root.style.getPropertyValue('--' + k) && k !== 'accent' && k !== 'sat' && k !== 'sab') root.style.removeProperty('--' + k); if (root.dataset.festAccent) { root.style.removeProperty('--accent'); delete root.dataset.festAccent; } delete root.dataset.fest; applyLookV85f(); /* the user's own theme, background and accent come back */ if (festStyle) festStyle.textContent = ''; metas.forEach(mt => { if (mt.dataset.orig) mt.content = mt.dataset.orig; }); return; }
+  const F = FESTS[id], pal = festDark() ? F.dark : F.light; const ownMat = !!store.get('mat', ''), ownAcc = !!store.get('accent', ''); /* a background or accent the user picked in Settings wins over the look */
+  for (const k of FEST_VARS) { if (ownMat && k === 'mat') continue; if (ownAcc && (k === 'accent' || k === 'accent-ink' || k === 'accent-soft' || k === 'accentInk' || k === 'accentSoft')) continue; root.style.setProperty('--' + k, pal[k]); } root.dataset.fest = id; if (!ownAcc) root.dataset.festAccent = '1';
   if (!festStyle) { festStyle = document.createElement('style'); festStyle.id = 'festStyle'; document.body.appendChild(festStyle); }
   festStyle.textContent = `:root[data-fest] #top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:${F.stripe};opacity:.9;pointer-events:none}:root[data-fest] #top{position:relative}:root[data-fest] #filesHead h1::after{content:" · ${F.name}";font-size:.5em;font-weight:600;color:var(--muted);vertical-align:middle}`;
   metas.forEach(mt => { if (!mt.dataset.orig) mt.dataset.orig = mt.content; mt.content = pal.panel; }); }

@@ -136,3 +136,6 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   password, cross-device recognition, newer copy, token refresh, PDFs-on upload, third device, sign-out) and t129.js (forgot-
   password link → password dialog, Choose-its-PDF picker incl. wrong-file warning) against fakesb.js, a stand-in for the
   auth/REST/storage endpoints. Not tested here: the real Supabase project end to end (needs the user's emails).
+- FEST86 fix: a "Background around the pages" or accent the user picked in Settings now wins over the festive palette (the
+  look used to paint its own mat/accent over them, so the setting looked dead while Autumn was on); turning the look off
+  re-applies the user's own theme/mat/accent.
