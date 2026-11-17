@@ -8529,7 +8529,7 @@ try { HELP.push(['Choosing what goes in a report', ['Every report that lists mar
 Object.assign(RDX, { reportChooser, reportDialog, runReport, RC_FOR, rcKind, RF: () => RF_ONLY });
 
 /* ---------- V81: hold-to-straighten sign, and which version is running ---------- */
-const BUILD = '86.40 · Nov 17 2026 · iPad edition';
+const BUILD = '86.43 · Nov 17 2026 · iPad edition';
 try { const st = document.createElement('style'); st.textContent = `#snapCue{position:fixed;z-index:60;pointer-events:none;padding:6px 12px;border-radius:999px;background:#17212b;color:#fff;font:600 14px var(--ui,system-ui);box-shadow:0 2px 10px #0004;opacity:0;transform:scale(.6);transition:opacity .12s,transform .12s;white-space:nowrap}
 #snapCue.on{opacity:1;transform:scale(1);animation:snapPop .32s ease-out}@keyframes snapPop{0%{transform:scale(.6)}55%{transform:scale(1.15)}100%{transform:scale(1)}}`; document.head.appendChild(st); } catch (e) {}
 // the sign never outlives the stroke, whatever ends it
@@ -9553,6 +9553,140 @@ const p2SwapDocsV85 = p2SwapDocs; p2SwapDocs = async function () { if (!SPLIT86)
   const want = !was; if (!!S.swapSides !== want) splitSwap(); /* the document you tapped is edited where it already was */
   render2(); changed2(); syncP2(); toast('Now editing ' + (S.fileName || 'this document') + ' on this side. Tap the other side to edit that one.', 3000); };
 Object.assign(RDX, { SPLIT86 });
+
+/* ---------- SYMLIB86 (iPad edition): the construction symbol library ----------
+   V85 has a 'symbol' markup (a box item drawn as vector paths in the stroke color; resizable by its corners, rotatable,
+   flattened into the PDF by the same painter) with 22 drawing marks. This adds ~60 legend symbols — electrical, lighting,
+   plumbing, appliances, HVAC, general — a picker with categories, search and recents, a size choice, and a "highlight"
+   halo (a soft block of the symbol's color behind it) so new or changed items jump off the sheet. Color is the swatch in
+   the bar, as for every markup; selected symbols take a new swatch, size and halo like any other item. Switch: SYMLIB86. */
+const SYMLIB86 = true;
+/* id, name, aspect (w/h ≥ 1 → square box), default text, category, keywords */
+const SYM86 = [
+  // electrical
+  ['el_duplex', 'Duplex receptacle', 1, '', 'el', 'outlet plug 120'], ['el_gfci', 'GFCI receptacle', 1, 'GFCI', 'el', 'outlet gfi bathroom kitchen'], ['el_wp', 'Weatherproof receptacle', 1, 'WP', 'el', 'outlet exterior'], ['el_220', '220 V / range receptacle', 1, '', 'el', 'outlet 240 dryer range'],
+  ['el_quad', 'Quad receptacle', 1, '', 'el', 'outlet fourplex'], ['el_floor', 'Floor receptacle', 1, '', 'el', 'outlet floor box'], ['el_usb', 'USB receptacle', 1, 'USB', 'el', 'outlet charger'], ['el_special', 'Special-purpose outlet', 1, '', 'el', 'dedicated appliance'],
+  ['el_jbox', 'Junction box', 1, 'J', 'el', 'j-box'], ['el_s', 'Switch', 1, 'S', 'el', 'single pole'], ['el_s3', '3-way switch', 1, 'S3', 'el', 'three way'], ['el_s4', '4-way switch', 1, 'S4', 'el', 'four way'], ['el_sd', 'Dimmer switch', 1, 'SD', 'el', 'dimmer'], ['el_os', 'Occupancy / motion sensor', 1, 'OS', 'el', 'motion vacancy'],
+  ['el_panel', 'Electrical panel', 0.45, 'P', 'el', 'breaker load center'], ['el_disc', 'Disconnect', 1, 'D', 'el', 'disconnect switch'], ['el_tstat', 'Thermostat', 1, 'T', 'el', 'hvac control'], ['el_chime', 'Door chime', 1, 'CH', 'el', 'doorbell'], ['el_pb', 'Push button', 1, '', 'el', 'doorbell button'],
+  ['el_data', 'Data outlet', 1, 'D', 'el', 'cat6 ethernet network'], ['el_tv', 'TV / cable outlet', 1, 'TV', 'el', 'coax cable'], ['el_tel', 'Phone outlet', 1, 'TEL', 'el', 'telephone'], ['el_co', 'CO detector', 1, 'CO', 'el', 'carbon monoxide'], ['el_sdco', 'Smoke / CO combo', 1, 'SD/CO', 'el', 'smoke carbon'],
+  // lighting
+  ['lt_recessed', 'Recessed light (can)', 1, '', 'lt', 'can downlight pot'], ['lt_surface', 'Surface ceiling light', 1, '', 'lt', 'flush mount'], ['lt_sconce', 'Wall sconce', 1, '', 'lt', 'wall light'], ['lt_pendant', 'Pendant light', 1, '', 'lt', 'hanging'],
+  ['lt_fan', 'Ceiling fan', 1, '', 'lt', 'paddle fan'], ['lt_fanlight', 'Ceiling fan with light', 1, '', 'lt', 'fan light kit'], ['lt_exhaust', 'Exhaust fan', 1, 'EF', 'lt', 'bath fan vent'], ['lt_fluor', 'Linear / fluorescent fixture', 0.3, '', 'lt', 'strip led tube'],
+  ['lt_track', 'Track lighting', 0.3, '', 'lt', 'track heads'], ['lt_undercab', 'Under-cabinet light', 0.3, 'UC', 'lt', 'under cabinet led'], ['lt_emerg', 'Emergency light', 0.6, '', 'lt', 'battery bug eyes'], ['lt_flood', 'Exterior flood / wall pack', 1, '', 'lt', 'outdoor security light'],
+  // plumbing
+  ['pl_hb', 'Hose bib / spigot', 1, 'HB', 'pl', 'spigot faucet sillcock exterior'], ['pl_fd', 'Floor drain', 1, 'FD', 'pl', 'drain'], ['pl_co', 'Cleanout', 1, 'CO', 'pl', 'clean out'], ['pl_wh', 'Water heater', 1, 'WH', 'pl', 'hot water tank'], ['pl_sump', 'Sump pump', 1, 'SP', 'pl', 'sump pit'],
+  ['pl_valve', 'Shut-off valve', 1, '', 'pl', 'valve stop'], ['pl_gas', 'Gas outlet', 1, 'G', 'pl', 'gas stub'], ['pl_wc', 'Toilet', 0.7, '', 'pl', 'water closet wc'], ['pl_lav', 'Sink / lavatory', 1, '', 'pl', 'basin lav'], ['pl_tub', 'Bathtub', 0.5, '', 'pl', 'tub'], ['pl_shower', 'Shower', 1, '', 'pl', 'shower pan'], ['pl_wmbox', 'Washer box', 1, 'WB', 'pl', 'washing machine supply box'],
+  // appliances
+  ['ap_washer', 'Washer', 1, 'W', 'ap', 'washing machine laundry'], ['ap_dryer', 'Dryer', 1, 'D', 'ap', 'laundry'], ['ap_wd', 'Stacked washer / dryer', 0.6, '', 'ap', 'laundry stack'], ['ap_range', 'Range / cooktop', 1, '', 'ap', 'stove oven burners'], ['ap_hood', 'Range hood', 0.5, 'HOOD', 'ap', 'vent hood'],
+  ['ap_ref', 'Refrigerator', 0.8, 'REF', 'ap', 'fridge'], ['ap_dw', 'Dishwasher', 1, 'DW', 'ap', 'dishwasher'], ['ap_mw', 'Microwave', 0.6, 'MW', 'ap', 'microwave'], ['ap_gd', 'Garbage disposal', 1, 'GD', 'ap', 'disposer'],
+  // hvac
+  ['hv_supply', 'Supply diffuser', 1, '', 'hv', 'supply air register'], ['hv_return', 'Return grille', 1, 'R', 'hv', 'return air'], ['hv_register', 'Floor register', 0.45, '', 'hv', 'floor vent'], ['hv_ahu', 'Air handler / furnace', 0.7, 'AHU', 'hv', 'furnace unit'], ['hv_cu', 'Condensing unit', 1, 'CU', 'hv', 'ac condenser heat pump'], ['hv_dryer', 'Dryer vent', 1, 'DV', 'hv', 'dryer exhaust'],
+  // general
+  ['gn_fe', 'Fire extinguisher', 1, 'FE', 'gn', 'extinguisher'], ['gn_cam', 'Security camera', 1, '', 'gn', 'cctv camera'], ['gn_sign', 'Sign', 0.5, 'SIGN', 'gn', 'signage'], ['gn_hold', 'Hold / verify', 1, 'HOLD', 'gn', 'hold verify field'], ['gn_new', 'New', 1, 'NEW', 'gn', 'new added'], ['gn_relocate', 'Relocate', 1, 'RELOC', 'gn', 'move relocate existing']];
+const SYMCAT86 = [['all', 'All'], ['recent', 'Recent'], ['el', 'Electrical'], ['lt', 'Lighting'], ['pl', 'Plumbing'], ['ap', 'Appliances'], ['hv', 'HVAC'], ['gn', 'General'], ['dw', 'Drawing marks']];
+const SYMMAP86 = new Map(SYM86.map(s => [s[0], s]));
+function symDraw86(p, id, b, st, text, col) { const x = b.x, y = b.y, w = b.w, h = b.h, cx = x + w / 2, cy = y + h / 2, r = Math.min(w, h) / 2, lw = st.width || 2, fs0 = Math.max(6, Math.min(w, h) * 0.42);
+  const T = (t, sz, yy, xx) => { if (!t) return; sz = sz || fs0; p.text(t, (xx == null ? cx : xx) - textW(t, sz, true) / 2, (yy == null ? cy : yy) + sz * 0.35, sz, col, true); };
+  const L = (ax, ay, bx, by) => { p.moveTo(ax, ay); p.lineTo(bx, by); }, S_ = o => p.paint({ stroke: col, width: lw, ...(o || {}) }), F = () => p.paint({ fill: col }), D = () => p.paint({ stroke: col, width: lw, dash: [lw * 3, lw * 2.5] });
+  const C = (k, cxx, cyy) => { p.begin(); addCircle(p, cxx == null ? cx : cxx, cyy == null ? cy : cyy, r * k); }, RECT = (x0, y0, w0, h0) => { p.begin(); p.moveTo(x0, y0); p.lineTo(x0 + w0, y0); p.lineTo(x0 + w0, y0 + h0); p.lineTo(x0, y0 + h0); p.close(); }, TRI = (k) => { p.begin(); p.moveTo(cx, cy - r * k); p.lineTo(cx + r * k * 0.95, cy + r * k * 0.6); p.lineTo(cx - r * k * 0.95, cy + r * k * 0.6); p.close(); };
+  const duplex = (lab) => { C(0.6); S_(); p.begin(); L(cx - r * 0.6, cy, cx - r, cy); L(cx + r * 0.6, cy, cx + r, cy); L(cx - r * 0.42, cy - r * 0.3, cx + r * 0.42, cy - r * 0.3); L(cx - r * 0.42, cy + r * 0.3, cx + r * 0.42, cy + r * 0.3); S_(); if (lab) T(lab, Math.min(fs0 * 0.5, w * 0.22), cy + r * 0.88); };
+  const fit = (t, k) => Math.max(5, Math.min(h * (k || 0.5), w * 0.9 / Math.max(1, t.length) * 1.7));
+  switch (id) {
+    case 'el_duplex': duplex(''); break; case 'el_gfci': duplex(text || 'GFCI'); break; case 'el_wp': duplex(text || 'WP'); break; case 'el_usb': duplex(text || 'USB'); break;
+    case 'el_220': C(0.62); S_(); p.begin(); L(cx - r * 0.62, cy, cx - r, cy); L(cx + r * 0.62, cy, cx + r, cy); L(cx, cy - r * 0.62, cx, cy + r * 0.62); L(cx - r * 0.62, cy, cx + r * 0.62, cy); S_(); T(text || '220', fs0 * 0.42, cy + r * 0.92); break;
+    case 'el_quad': C(0.6); S_(); p.begin(); L(cx - r * 0.6, cy, cx - r, cy); L(cx + r * 0.6, cy, cx + r, cy); for (const k of [-0.42, -0.14, 0.14, 0.42]) L(cx - r * 0.4, cy + r * k, cx + r * 0.4, cy + r * k); S_(); break;
+    case 'el_floor': RECT(cx - r * 0.95, cy - r * 0.95, r * 1.9, r * 1.9); S_(); C(0.5); S_(); p.begin(); L(cx - r * 0.35, cy - r * 0.22, cx + r * 0.35, cy - r * 0.22); L(cx - r * 0.35, cy + r * 0.22, cx + r * 0.35, cy + r * 0.22); S_(); break;
+    case 'el_special': C(0.8); S_(); TRI(0.5); F(); break;
+    case 'el_jbox': C(0.8); S_(); T(text || 'J', fs0 * 0.8); break;
+    case 'el_s': case 'el_s3': case 'el_s4': case 'el_sd': { p.begin(); L(cx - r * 0.3, cy + r * 0.95, cx + r * 0.35, cy - r * 0.7); S_({ width: lw * 1.3 }); const sub = (text || SYMMAP86.get(id)[3]).replace(/^S/, ''); T('S', fs0 * 1.05, cy, cx - r * 0.1); if (sub) T(sub, fs0 * 0.55, cy + r * 0.45, cx + r * 0.55); break; }
+    case 'el_os': C(0.85); S_(); T(text || 'OS', fs0 * 0.6); break;
+    case 'el_panel': RECT(x + w * 0.1, y + h * 0.05, w * 0.8, h * 0.9); F(); p.text(text || 'P', cx - textW(text || 'P', Math.min(w * 0.7, h * 0.3), true) / 2, cy + Math.min(w * 0.7, h * 0.3) * 0.35, Math.min(w * 0.7, h * 0.3), '#ffffff', true); break;
+    case 'el_disc': RECT(cx - r * 0.85, cy - r * 0.85, r * 1.7, r * 1.7); S_(); p.begin(); L(cx - r * 0.85, cy + r * 0.85, cx + r * 0.85, cy - r * 0.85); S_(); T(text || 'D', fs0 * 0.55, cy - r * 0.35, cx - r * 0.35); break;
+    case 'el_tstat': C(0.85); S_(); T(text || 'T', fs0 * 0.9); break;
+    case 'el_chime': RECT(cx - r * 0.85, cy - r * 0.6, r * 1.7, r * 1.2); S_(); T(text || 'CH', fs0 * 0.6); break;
+    case 'el_pb': C(0.5); S_(); C(0.18); F(); break;
+    case 'el_data': case 'el_tv': case 'el_tel': TRI(0.95); S_(); T(text || SYMMAP86.get(id)[3], id === 'el_data' ? fs0 * 0.6 : fs0 * 0.42, cy + r * 0.25); break;
+    case 'el_co': C(0.9); S_(); T(text || 'CO', fs0 * 0.6); break;
+    case 'el_sdco': C(0.9); S_(); p.begin(); L(cx - r * 0.9, cy, cx + r * 0.9, cy); S_(); T('SD', fs0 * 0.45, cy - r * 0.42); T('CO', fs0 * 0.45, cy + r * 0.48); break;
+    case 'lt_recessed': C(0.9); S_(); C(0.5); S_(); break;
+    case 'lt_surface': C(0.85); S_(); p.begin(); L(cx - r * 0.6, cy - r * 0.6, cx + r * 0.6, cy + r * 0.6); L(cx - r * 0.6, cy + r * 0.6, cx + r * 0.6, cy - r * 0.6); S_(); break;
+    case 'lt_sconce': C(0.6, cx + r * 0.2); S_(); p.begin(); L(cx - r * 0.95, cy - r * 0.9, cx - r * 0.95, cy + r * 0.9); L(cx - r * 0.95, cy, cx - r * 0.4, cy); S_({ width: lw * 1.4 }); p.begin(); L(cx - r * 0.2, cy - r * 0.4, cx + r * 0.6, cy + r * 0.4); L(cx - r * 0.2, cy + r * 0.4, cx + r * 0.6, cy - r * 0.4); S_(); break;
+    case 'lt_pendant': C(0.85); S_(); C(0.3); F(); break;
+    case 'lt_fan': case 'lt_fanlight': { C(0.28); S_(); for (let k = 0; k < 4; k++) { const t = k * Math.PI / 2 + Math.PI / 4; p.begin(); const bx = cx + Math.cos(t) * r * 0.62, by = cy + Math.sin(t) * r * 0.62; addCircle(p, bx, by, r * 0.3); S_(); } if (id === 'lt_fanlight') { C(0.12); F(); } break; }
+    case 'lt_exhaust': RECT(cx - r * 0.9, cy - r * 0.9, r * 1.8, r * 1.8); S_(); C(0.62); S_(); T(text || 'EF', fs0 * 0.5); break;
+    case 'lt_fluor': RECT(x, y + h * 0.1, w, h * 0.8); S_(); p.begin(); L(x, cy, x + w, cy); S_(); p.begin(); L(x + w * 0.06, y + h * 0.1, x + w * 0.06, y + h * 0.9); L(x + w * 0.94, y + h * 0.1, x + w * 0.94, y + h * 0.9); S_(); break;
+    case 'lt_track': p.begin(); L(x, cy, x + w, cy); S_({ width: lw * 1.6 }); for (const k of [0.18, 0.5, 0.82]) { p.begin(); addCircle(p, x + w * k, cy, h * 0.3); S_(); p.begin(); addCircle(p, x + w * k, cy, h * 0.1); F(); } break;
+    case 'lt_undercab': RECT(x, y + h * 0.15, w, h * 0.7); D(); T(text || 'UC', Math.min(h * 0.55, w * 0.2)); break;
+    case 'lt_emerg': RECT(x + w * 0.2, y + h * 0.25, w * 0.6, h * 0.5); S_(); p.begin(); addCircle(p, x + w * 0.12, y + h * 0.22, h * 0.2); addCircle(p, x + w * 0.88, y + h * 0.22, h * 0.2); S_(); T(text || 'EM', Math.min(h * 0.35, w * 0.2)); break;
+    case 'lt_flood': { C(0.5, cx, cy + r * 0.2); S_(); for (let k = -2; k <= 2; k++) { const t = -Math.PI / 2 + k * 0.42; p.begin(); L(cx + Math.cos(t) * r * 0.62, cy + r * 0.2 + Math.sin(t) * r * 0.62, cx + Math.cos(t) * r, cy + r * 0.2 + Math.sin(t) * r); S_(); } break; }
+    case 'pl_hb': p.begin(); L(x + w * 0.1, cy, cx, cy); S_({ width: lw * 1.4 }); p.begin(); p.moveTo(cx, cy - r * 0.45); p.lineTo(cx + r * 0.75, cy); p.lineTo(cx, cy + r * 0.45); p.close(); F(); T(text || 'HB', fs0 * 0.6, cy + r * 0.95, cx + r * 0.3); break;
+    case 'pl_fd': C(0.72, cx, cy - r * 0.18); S_(); RECT(cx - r * 0.4, cy - r * 0.58, r * 0.8, r * 0.8); S_(); p.begin(); L(cx - r * 0.4, cy - r * 0.18, cx + r * 0.4, cy - r * 0.18); L(cx, cy - r * 0.58, cx, cy + r * 0.22); S_(); T(text || 'FD', fs0 * 0.5, cy + r * 0.82); break;
+    case 'pl_co': C(0.85); S_(); p.begin(); L(cx - r * 0.85, cy, cx + r * 0.85, cy); S_(); T(text || 'CO', fs0 * 0.55, cy - r * 0.38); break;
+    case 'pl_wh': C(0.9); S_(); T(text || 'WH', fs0 * 0.6); break;
+    case 'pl_sump': C(0.75, cx, cy - r * 0.1); S_(); p.begin(); L(cx - r, cy + r * 0.85, cx + r, cy + r * 0.85); S_({ width: lw * 1.4 }); T(text || 'SP', fs0 * 0.5, cy - r * 0.1); break;
+    case 'pl_valve': p.begin(); L(x, cy, x + w, cy); S_(); p.begin(); p.moveTo(cx - r * 0.7, cy - r * 0.5); p.lineTo(cx, cy); p.lineTo(cx - r * 0.7, cy + r * 0.5); p.close(); p.moveTo(cx + r * 0.7, cy - r * 0.5); p.lineTo(cx, cy); p.lineTo(cx + r * 0.7, cy + r * 0.5); p.close(); S_(); break;
+    case 'pl_gas': C(0.8); S_(); p.begin(); L(cx - r * 0.8, cy, cx - r, cy); S_({ width: lw * 1.4 }); T(text || 'G', fs0 * 0.85); break;
+    case 'pl_wc': RECT(x + w * 0.1, y, w * 0.8, h * 0.28); S_(); p.begin(); addEllipse86(p, cx, y + h * 0.64, w * 0.38, h * 0.34); S_(); break;
+    case 'pl_lav': RECT(x + w * 0.05, y + h * 0.1, w * 0.9, h * 0.8); S_(); p.begin(); addEllipse86(p, cx, cy + h * 0.05, w * 0.32, h * 0.26); S_(); C(0.08, cx, y + h * 0.22); F(); break;
+    case 'pl_tub': boxPath(p, { x, y, w, h }, Math.min(w, h) * 0.15); S_(); boxPath(p, { x: x + w * 0.08, y: y + h * 0.16, w: w * 0.84, h: h * 0.68 }, Math.min(w, h) * 0.3); S_(); p.begin(); addCircle(p, x + w * 0.13, cy, h * 0.07); F(); break;
+    case 'pl_shower': RECT(cx - r * 0.95, cy - r * 0.95, r * 1.9, r * 1.9); S_(); p.begin(); L(cx - r * 0.95, cy - r * 0.95, cx + r * 0.95, cy + r * 0.95); L(cx + r * 0.95, cy - r * 0.95, cx - r * 0.95, cy + r * 0.95); S_(); C(0.14); F(); break;
+    case 'pl_wmbox': RECT(cx - r * 0.85, cy - r * 0.7, r * 1.7, r * 1.4); S_(); p.begin(); addCircle(p, cx - r * 0.35, cy - r * 0.25, r * 0.14); addCircle(p, cx + r * 0.35, cy - r * 0.25, r * 0.14); F(); T(text || 'WB', fs0 * 0.42, cy + r * 0.3); break;
+    case 'ap_washer': case 'ap_dryer': RECT(cx - r * 0.95, cy - r * 0.95, r * 1.9, r * 1.9); S_(); C(0.6); S_(); T(text || SYMMAP86.get(id)[3], fs0 * 0.6); break;
+    case 'ap_wd': RECT(x, y, w, h); S_(); p.begin(); L(x, cy, x + w, cy); S_(); T('W', Math.min(w * 0.4, h * 0.25), y + h * 0.25); T('D', Math.min(w * 0.4, h * 0.25), y + h * 0.75); break;
+    case 'ap_range': RECT(cx - r * 0.95, cy - r * 0.95, r * 1.9, r * 1.9); S_(); for (const [kx, ky] of [[-0.45, -0.45], [0.45, -0.45], [-0.45, 0.45], [0.45, 0.45]]) { p.begin(); addCircle(p, cx + r * kx, cy + r * ky, r * 0.28); S_(); } break;
+    case 'ap_hood': p.begin(); p.moveTo(x, y + h); p.lineTo(x + w * 0.15, y); p.lineTo(x + w * 0.85, y); p.lineTo(x + w, y + h); p.close(); S_(); T(text || 'HOOD', Math.min(h * 0.5, w * 0.16), cy + h * 0.08); break;
+    case 'ap_ref': RECT(x, y, w, h); S_(); p.begin(); L(x, y + h * 0.32, x + w, y + h * 0.32); S_(); T(text || 'REF', Math.min(w * 0.3, h * 0.3), y + h * 0.66); break;
+    case 'ap_dw': RECT(cx - r * 0.95, cy - r * 0.95, r * 1.9, r * 1.9); S_(); T(text || 'DW', fs0 * 0.65); break;
+    case 'ap_mw': RECT(x, y, w, h); S_(); T(text || 'MW', Math.min(h * 0.55, w * 0.35)); break;
+    case 'ap_gd': C(0.85); S_(); T(text || 'GD', fs0 * 0.6); break;
+    case 'hv_supply': RECT(cx - r * 0.95, cy - r * 0.95, r * 1.9, r * 1.9); S_(); p.begin(); p.moveTo(cx - r * 0.95, cy - r * 0.95); p.lineTo(cx + r * 0.95, cy - r * 0.95); p.lineTo(cx, cy); p.close(); p.moveTo(cx - r * 0.95, cy + r * 0.95); p.lineTo(cx + r * 0.95, cy + r * 0.95); p.lineTo(cx, cy); p.close(); F(); p.begin(); L(cx - r * 0.95, cy - r * 0.95, cx + r * 0.95, cy + r * 0.95); L(cx + r * 0.95, cy - r * 0.95, cx - r * 0.95, cy + r * 0.95); S_(); break;
+    case 'hv_return': RECT(cx - r * 0.95, cy - r * 0.95, r * 1.9, r * 1.9); S_(); p.begin(); L(cx - r * 0.95, cy + r * 0.95, cx + r * 0.95, cy - r * 0.95); S_(); T(text || 'R', fs0 * 0.55, cy - r * 0.4, cx - r * 0.4); break;
+    case 'hv_register': RECT(x, y, w, h); S_(); p.begin(); for (let k = 1; k <= 5; k++) L(x + w * k / 6, y, x + w * k / 6, y + h); S_(); break;
+    case 'hv_ahu': RECT(x, y, w, h); S_(); C(0.3, cx, y + h * 0.3); S_(); T(text || 'AHU', Math.min(w * 0.28, h * 0.22), y + h * 0.76); break;
+    case 'hv_cu': RECT(cx - r * 0.95, cy - r * 0.95, r * 1.9, r * 1.9); S_(); C(0.62); S_(); C(0.14); F(); T(text || 'CU', fs0 * 0.35, cy + r * 1.0); break;
+    case 'hv_dryer': C(0.75); S_(); p.begin(); L(cx - r * 0.75, cy, cx - r, cy); S_({ width: lw * 1.4 }); T(text || 'DV', fs0 * 0.55); break;
+    case 'gn_fe': C(0.9); S_(); T(text || 'FE', fs0 * 0.6); break;
+    case 'gn_cam': C(0.45, cx - r * 0.3); S_(); p.begin(); p.moveTo(cx + r * 0.1, cy - r * 0.3); p.lineTo(cx + r * 0.95, cy - r * 0.7); p.lineTo(cx + r * 0.95, cy + r * 0.7); p.lineTo(cx + r * 0.1, cy + r * 0.3); p.close(); S_(); break;
+    case 'gn_sign': RECT(x, y, w, h); S_(); T(text || 'SIGN', Math.min(h * 0.55, w * 0.18)); break;
+    case 'gn_hold': case 'gn_new': case 'gn_relocate': { const t = text || SYMMAP86.get(id)[3]; p.begin(); for (let k = 0; k < 6; k++) { const a = Math.PI / 3 * k + Math.PI / 6, px = cx + Math.cos(a) * r * 0.98, py = cy + Math.sin(a) * r * 0.98; if (k) p.lineTo(px, py); else p.moveTo(px, py); } p.close(); S_({ width: lw * 1.3 }); T(t, Math.min(fs0 * 0.5, r * 1.6 / Math.max(2, t.length) * 1.5)); break; }
+    default: C(0.9); S_(); T(text, fs0 * 0.7); } }
+function addEllipse86(p, cx, cy, rx, ry) { const k = 0.5522848; p.moveTo(cx + rx, cy); p.curveTo(cx + rx, cy + ry * k, cx + rx * k, cy + ry, cx, cy + ry); p.curveTo(cx - rx * k, cy + ry, cx - rx, cy + ry * k, cx - rx, cy); p.curveTo(cx - rx, cy - ry * k, cx - rx * k, cy - ry, cx, cy - ry); p.curveTo(cx + rx * k, cy - ry, cx + rx, cy - ry * k, cx + rx, cy); }
+const symPathV85L = symPath; symPath = function (p, id, b, st, text, col) { if (SYMLIB86 && SYMMAP86.has(id)) return symDraw86(p, id, b, st, text, col); return symPathV85L.apply(this, arguments); };
+/* the halo: a soft block of the symbol's color behind it */
+const drawSymbolV85L = drawSymbol; drawSymbol = function (p, m) { if (SYMLIB86 && m.style && m.style.halo) { const b = box(m), g = Math.min(b.w, b.h) * 0.18; p.save(); p.alpha(m.style.halo === 'strong' ? 0.45 : 0.28); boxPath(p, { x: b.x - g, y: b.y - g, w: b.w + 2 * g, h: b.h + 2 * g }, g * 1.2); p.paint({ fill: m.style.stroke }); p.restore(); } return drawSymbolV85L.apply(this, arguments); };
+/* placement: size and halo from the picker */
+const SYMSIZE86 = { s: 0.65, m: 1, l: 1.5, xl: 2.2 };
+const placeSymbolV85L = placeSymbol; placeSymbol = function (p) { const pk = S.symPick; if (!SYMLIB86 || !pk) return placeSymbolV85L.apply(this, arguments);
+  const vs = vSize(cur()), k = SYMSIZE86[store.get('symSize86', 'm')] || 1, base = Math.max(vs.w, vs.h) * 0.045 * k, w = pk.asp >= 1 ? base : base * 1.8, h = pk.asp >= 1 ? base : base * 1.8 * pk.asp;
+  const m = newMarkup('symbol', [{ x: p.x - w / 2, y: p.y - h / 2 }, { x: p.x + w / 2, y: p.y + h / 2 }], { sym: pk.id, text: pk.txt || '' }); m.style.fill = null; const halo = store.get('symHalo86', ''); if (halo) m.style.halo = halo; addMarkup(m);
+  if (pk.txt && ['section', 'detail', 'elev', 'grid', 'keynote', 'rev'].includes(pk.id)) { const nx = /^\d+$/.test(pk.txt) ? String(+pk.txt + 1) : /^[A-Y]$/.test(pk.txt) ? String.fromCharCode(pk.txt.charCodeAt(0) + 1) : pk.txt; S.symPick = { ...pk, txt: nx }; }
+  const rec = (store.get('symRecent86', []) || []).filter(x => x !== pk.id); rec.unshift(pk.id); store.set('symRecent86', rec.slice(0, 16)); };
+/* the picker */
+function symbolDialog86() { document.querySelectorAll('.scrim').forEach(s => s.remove()); let cat = store.get('symCat86', 'all'), q = '';
+  const md = modal(`<h3>Symbols</h3><p class="muted" style="margin:0 0 6px">Tap one, then tap the sheet wherever it goes; keep tapping to place more. Drag a corner to resize. Color is the swatch in the bar.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px"><input id="symQ" type="search" placeholder="Find: outlet, can light, hose bib…" style="flex:1;min-width:180px"><div id="symCats" style="display:flex;flex-wrap:wrap"></div></div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:8px;font-size:13px"><span style="display:flex;gap:4px;align-items:center">Size <span id="symSz"></span></span><span style="display:flex;gap:4px;align-items:center">Highlight <span id="symHalo"></span></span><span style="display:flex;gap:5px;align-items:center" id="symCols">Color </span></div>
+    <div class="symg" id="symGrid" style="max-height:52vh;overflow:auto"></div><div class="acts"><button class="btn line" id="symNo">Close</button></div>`), grid = md.querySelector('#symGrid'); md.querySelector('.modal').classList.add('wide');
+  const seg = (host, opts, get, set) => { host.innerHTML = ''; host.style.cssText = 'display:inline-flex;gap:2px;margin:0;padding:2px;border-bottom:0'; for (const [v, t] of opts) { const b = document.createElement('button'); b.className = 'btn' + (get() === v ? ' on' : ''); b.style.cssText = 'height:28px;padding:0 10px;font-size:12.5px'; b.textContent = t; b.onclick = () => { set(v); seg(host, opts, get, set); if (host.id !== 'symCats') draw(); }; host.appendChild(b); } };
+  seg(md.querySelector('#symSz'), [['s', 'S'], ['m', 'M'], ['l', 'L'], ['xl', 'XL']], () => store.get('symSize86', 'm'), v => store.set('symSize86', v));
+  seg(md.querySelector('#symHalo'), [['', 'None'], ['soft', 'Soft'], ['strong', 'Strong']], () => store.get('symHalo86', ''), v => store.set('symHalo86', v));
+  const cols = md.querySelector('#symCols'); const paintCols = () => { cols.querySelectorAll('.sw').forEach(x => x.remove()); for (const c of COLORS) { const b = document.createElement('button'); b.className = 'sw' + (S.style.stroke === c ? ' on' : ''); b.style.cssText = `width:22px;height:22px;border-radius:50%;background:${c};border:2px solid ${S.style.stroke === c ? 'var(--ink)' : 'var(--line)'};padding:0`; b.title = c; b.onclick = () => { setProp('stroke', c); paintCols(); draw(); }; cols.appendChild(b); } }; paintCols();
+  const catHost = md.querySelector('#symCats'); const paintCats = () => { seg(catHost, SYMCAT86, () => cat, v => { cat = v; store.set('symCat86', v); draw(); }); }; paintCats();
+  const list = () => { const rec = store.get('symRecent86', []) || []; const old = SYMBOLS.filter(s => !SYMMAP86.has(s[0])).map(s => [s[0], s[1], s[2], s[3], 'dw', '']); let all = [...SYM86, ...old]; if (q) { const ws = q.toLowerCase().split(/\s+/).filter(Boolean); all = all.filter(s => { const hay = (s[1] + ' ' + (s[5] || '') + ' ' + s[0]).toLowerCase(); return ws.every(w => hay.includes(w)); }); } else if (cat === 'recent') all = rec.map(id => all.find(s => s[0] === id)).filter(Boolean); else if (cat !== 'all') all = all.filter(s => s[4] === cat); return all; };
+  const draw = () => { grid.innerHTML = ''; const items = list(); if (!items.length) { grid.innerHTML = `<p class="muted" style="grid-column:1/-1">${cat === 'recent' && !q ? 'Nothing placed yet.' : 'No symbol matches.'}</p>`; return; } const col = S.style.stroke || '#16202B';
+    for (const [id, name, asp, txt] of items) { const b = document.createElement('button'); b.className = 'btn line symb'; const cv = document.createElement('canvas'); cv.width = 96; cv.height = 72; const c = cv.getContext('2d'); const bw = asp >= 1 ? 46 : 80, bh = asp >= 1 ? 46 : 80 * asp; try { const halo = store.get('symHalo86', ''); if (halo) { c.save(); c.globalAlpha = halo === 'strong' ? 0.45 : 0.28; c.fillStyle = col; const g = Math.min(bw, bh) * 0.18; c.beginPath(); c.roundRect(48 - bw / 2 - g, 36 - bh / 2 - g, bw + 2 * g, bh + 2 * g, g * 1.2); c.fill(); c.restore(); } symPath(new CanvasPainter(c), id, { x: 48 - bw / 2, y: 36 - bh / 2, w: bw, h: bh }, { width: 2 }, txt, col); } catch (e) {}
+      const l = document.createElement('span'); l.textContent = name; b.append(cv, l); b.onclick = () => { md.close(); S.symPick = { id, asp, txt }; setTool('symbol'); toast('Tap the sheet where the ' + name.toLowerCase() + ' goes; keep tapping for more. Pick another tool when done.', 3200); }; grid.appendChild(b); } };
+  const qi = md.querySelector('#symQ'); qi.oninput = () => { q = qi.value.trim(); draw(); }; qi.onkeydown = e => e.stopPropagation(); draw(); if (!TOUCH) qi.focus();
+  md.querySelector('#symNo').onclick = () => { md.close(); if (S.tool === 'symbol' && !S.symPick) setTool('select'); }; return md; }
+const symbolDialogV85L = symbolDialog; symbolDialog = function () { return SYMLIB86 ? symbolDialog86() : symbolDialogV85L.apply(this, arguments); };
+/* selected symbols: halo and size from the context menu and the properties panel */
+const ctxExtrasSym86 = ctxExtras; ctxExtras = function (items, sm, one, s) { const r = ctxExtrasSym86.apply(this, arguments); try { if (!SYMLIB86) return r; const syms = (sm || []).filter(m => m.type === 'symbol'); if (!syms.length || syms.length !== sm.length) return r;
+    const anyHalo = syms.some(m => m.style && m.style.halo); const scale = k => { pushUndo(); for (const m of syms) { const b = box(m), cx = b.x + b.w / 2, cy = b.y + b.h / 2, w = b.w * k, h = b.h * k; m.pts = [{ x: cx - w / 2, y: cy - h / 2 }, { x: cx + w / 2, y: cy + h / 2 }]; } changed(); };
+    items.push('-', { head: syms.length === 1 ? 'Symbol' : syms.length + ' symbols' }, { label: anyHalo ? 'Remove the highlight' : 'Highlight (soft block behind)', icon: 'highlight', fn: () => { pushUndo(); for (const m of syms) { m.style = { ...m.style }; if (anyHalo) delete m.style.halo; else m.style.halo = 'soft'; } changed(); } },
+      { label: 'Bigger', icon: 'plus', fn: () => scale(1.25) }, { label: 'Smaller', fn: () => scale(0.8) }, { label: 'Another symbol…', icon: 'symbol', fn: symbolDialog86 }); } catch (e) {} return r; };
+const symbolDetailV85L = symbolDetail; symbolDetail = function (m, el) { const r = symbolDetailV85L.apply(this, arguments); try { if (!SYMLIB86 || m.type !== 'symbol') return r; const row = document.createElement('label'); row.className = 'chk'; const c = document.createElement('input'); c.type = 'checkbox'; c.checked = !!(m.style && m.style.halo); c.onchange = () => { pushUndo(); m.style = { ...m.style }; if (c.checked) m.style.halo = 'soft'; else delete m.style.halo; changed(); }; row.append(c, document.createTextNode(' Highlight behind the symbol')); el.appendChild(row); } catch (e) {} return r; };
+HELP.push(['Construction symbols', ['The Symbols tool (Insert group in the rail) opens a library: electrical receptacles and switches, lighting, plumbing, appliances, HVAC, general marks and the drawing marks (section cuts, bubbles, north arrow). Search by name, pick a size and an optional highlight block, tap one and then tap the sheet; keep tapping to place more. The swatch in the bar is its color, so new work can go on in red or yellow. Select a placed symbol to recolor it with a swatch, drag a corner to resize, or use its menu for Highlight, Bigger, Smaller. Symbols save into the PDF like any markup.']]);
+Object.assign(RDX, { SYMLIB86, SYM86, symbolDialog86, symDraw86 });
 
 /* ---------- wiring ---------- */
 function nameDialog() { const m = modal(`<h3>Your name on markups</h3><p>Saved with each markup and shown in the markup list and on dated stamps.</p><label>Name<input type="text" id="auName" maxlength="60" autocomplete="name"></label>

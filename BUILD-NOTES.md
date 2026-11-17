@@ -159,3 +159,11 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   Cause: p2SwapDocs toggled the swap class, but openDoc → resetDocExtras → closeSplit had already reset S.swapSides, so the
   toggle started from the wrong baseline. Now the arrangement is remembered before the swap and set explicitly. Test t132.js
   (three switches; fails with SPLIT86 off, passes on).
+- `app89.js` SYMLIB86 — construction symbol library on top of V85's 'symbol' markup: ~65 new legend symbols (electrical
+  receptacles/switches/devices, lighting, plumbing fixtures and rough-in, appliances, HVAC, general marks) drawn as vector
+  paths in symDraw86 (symPath wrapper; V85's 22 drawing marks stay under "Drawing marks"). New picker (symbolDialog86):
+  categories, word search, recents, Size S/M/L/XL (store symSize86), Highlight None/Soft/Strong (store symHalo86: a soft
+  block of the symbol's color behind it, drawn in a drawSymbol wrapper so it flattens into the PDF too), colour swatches
+  (setProp stroke). placeSymbol wrapper applies size/halo and records recents; keeps placing until another tool. Selected
+  symbols: context menu Highlight on/off, Bigger, Smaller, Another symbol…; properties panel checkbox. Test t133.js (picker,
+  filter, search, placement with size/halo/colour, menu actions, swatch recolour, flattened PDF shows the symbol).
