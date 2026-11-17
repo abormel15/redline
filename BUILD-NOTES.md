@@ -146,3 +146,7 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   "Change colors on this page…" (hold on the page), and that dialog refused to open on a page with no markups, so Blueprint
   looked gone. Patch: the dialog opens regardless (note "No markups on this page yet"); app85.js adds More › This document ›
   "How the drawing shows: blueprint, grayscale…" (shows the current look) and a Help entry.
+- `app86.js` SHARP86 — Change colors › "Sharpen scanned pages" Off / Light / Strong (store 'sharpen86'): an unsharp mask
+  applied after pcv to the base, detail and neighbour canvases, cached per canvas; ~140 ms for 6 MP here. For sheets that are
+  low-resolution pictures inside the PDF (vendor details, scans). The rendering pipeline itself was checked: the detail layer
+  already renders at screen resolution (10 MP budget on touch devices), so softness on such pages is the file's own.
