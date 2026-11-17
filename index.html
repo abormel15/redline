@@ -8529,7 +8529,7 @@ try { HELP.push(['Choosing what goes in a report', ['Every report that lists mar
 Object.assign(RDX, { reportChooser, reportDialog, runReport, RC_FOR, rcKind, RF: () => RF_ONLY });
 
 /* ---------- V81: hold-to-straighten sign, and which version is running ---------- */
-const BUILD = '86.43 · Nov 17 2026 · iPad edition';
+const BUILD = '86.51 · Nov 17 2026 · iPad edition';
 try { const st = document.createElement('style'); st.textContent = `#snapCue{position:fixed;z-index:60;pointer-events:none;padding:6px 12px;border-radius:999px;background:#17212b;color:#fff;font:600 14px var(--ui,system-ui);box-shadow:0 2px 10px #0004;opacity:0;transform:scale(.6);transition:opacity .12s,transform .12s;white-space:nowrap}
 #snapCue.on{opacity:1;transform:scale(1);animation:snapPop .32s ease-out}@keyframes snapPop{0%{transform:scale(.6)}55%{transform:scale(1.15)}100%{transform:scale(1)}}`; document.head.appendChild(st); } catch (e) {}
 // the sign never outlives the stroke, whatever ends it
@@ -9687,6 +9687,186 @@ const ctxExtrasSym86 = ctxExtras; ctxExtras = function (items, sm, one, s) { con
 const symbolDetailV85L = symbolDetail; symbolDetail = function (m, el) { const r = symbolDetailV85L.apply(this, arguments); try { if (!SYMLIB86 || m.type !== 'symbol') return r; const row = document.createElement('label'); row.className = 'chk'; const c = document.createElement('input'); c.type = 'checkbox'; c.checked = !!(m.style && m.style.halo); c.onchange = () => { pushUndo(); m.style = { ...m.style }; if (c.checked) m.style.halo = 'soft'; else delete m.style.halo; changed(); }; row.append(c, document.createTextNode(' Highlight behind the symbol')); el.appendChild(row); } catch (e) {} return r; };
 HELP.push(['Construction symbols', ['The Symbols tool (Insert group in the rail) opens a library: electrical receptacles and switches, lighting, plumbing, appliances, HVAC, general marks and the drawing marks (section cuts, bubbles, north arrow). Search by name, pick a size and an optional highlight block, tap one and then tap the sheet; keep tapping to place more. The swatch in the bar is its color, so new work can go on in red or yellow. Select a placed symbol to recolor it with a swatch, drag a corner to resize, or use its menu for Highlight, Bigger, Smaller. Symbols save into the PDF like any markup.']]);
 Object.assign(RDX, { SYMLIB86, SYM86, symbolDialog86, symDraw86 });
+
+/* ---------- KEYS86 (iPad edition): Alt+Z fits text boxes, Ctrl-drag copies, Shift-drag ignores the guides ----------
+   Alt+Z (or Option+Z): fit the selected text boxes / sticky notes to their text (the "Fit the box to the text" action).
+   Ctrl-drag (or Cmd-drag) with the arrow tool on a markup: the drag moves a copy and leaves the original where it was.
+   Holding Shift while moving, resizing or rotating: magnet, smart guides, grid snapping and page guides are ignored for
+   that gesture only. Keyboard-only features; nothing changes for touch. Switch: KEYS86. */
+const KEYS86 = true;
+const KS = { shift: false, ctrlDrag: 0 };
+const typingNow = () => { const t = document.activeElement; return !!(t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)); };
+document.addEventListener('keydown', e => { if (!KEYS86) return; if (e.key === 'Shift') KS.shift = true; if (e.altKey && !e.ctrlKey && !e.metaKey && (e.code === 'KeyZ' || e.key.toLowerCase() === 'z' || e.key === 'Ω') && !typingNow() && $('files').hidden) { e.preventDefault(); e.stopPropagation(); fitBoxSel(); } }, true);
+document.addEventListener('keyup', e => { if (e.key === 'Shift') KS.shift = false; }, true);
+window.addEventListener('blur', () => { KS.shift = false; });
+document.addEventListener('pointermove', e => { KS.shift = !!e.shiftKey; }, { capture: true, passive: true });
+/* Shift: no snapping while moving */
+const gridCfgK86 = gridCfg; gridCfg = function () { const c = gridCfgK86.apply(this, arguments); if (!KEYS86 || !KS.shift) return c; const g = S.gesture; if (!g || !MOVERS.has(g.kind)) return c; return { ...c, snap: false, magnet: false, smart: false }; };
+const moveSnapK86 = moveSnap; moveSnap = function (g, ox, oy) { if (KEYS86 && KS.shift) { S.snapGuides = null; S.gapGuides = null; return { x: ox, y: oy }; } return moveSnapK86.apply(this, arguments); };
+/* Ctrl-drag: duplicate in place, then let the ordinary move take the copies */
+document.addEventListener('pointerdown', e => { if (!KEYS86 || e.pointerType !== 'mouse' || e.button !== 0 || !(e.ctrlKey || e.metaKey) || e.shiftKey) return; if (S.tool !== 'select' || !$('files').hidden) return; const st = $('stage'); if (!st || !st.contains(e.target)) return;
+  let p; try { const q = pos(e); p = toPage(q.x, q.y); } catch (err) { return; } const hit = topHit(p); if (!hit || !editable(hit)) return;
+  if (!S.sel.has(hit.id)) S.sel = new Set([hit.id]); pushUndo(); const made = [], ids = new Set(); for (const m of S.markups.filter(m => S.sel.has(m.id))) { const c = cloneM(m); c.id = uid(); c.date = Date.now(); c.locked = false; delete c.link; made.push(c); S.markups.push(c); ids.add(c.id); }
+  regroup(made); S.sel = ids; KS.ctrlDrag = Date.now(); changed(); toast('Dragging a copy', 1200); /* the original handler now hits the copy on top and moves the selection */ }, true);
+HELP.push(['Keyboard shortcuts for markups', ['Alt+Z fits the selected text boxes to their text. Ctrl-drag (Cmd on a Mac) a markup to drag away a copy. Hold Shift while moving or resizing to ignore the magnet, smart guides and grid for that move.']]);
+Object.assign(RDX, { KEYS86, KS, moveSnap86: (g, x, y) => moveSnap(g, x, y) });
+
+/* ---------- EDTX86 (iPad edition): "make the text editable" behaves on CAD PDFs ----------
+   Many CAD PDFs carry a text layer whose font has no readable letters (SHX / subset fonts): the extracted strings are
+   private-use codes that draw as nothing. V85 then covered every line with a white box and put an invisible text box on
+   top — "blank boxes that do nothing". Now: lines whose text is unreadable are skipped and counted; if nothing is readable
+   the user is told instead; each text box remembers its cover, so deleting the text box also removes the cover (and the
+   original words show again); a text box with no text left behaves the same way. Switch: EDTX86. */
+const EDTX86 = true;
+const unreadable86 = s => { const t = (s || '').replace(/\s+/g, ''); if (!t) return true; let bad = 0; for (const ch of t) { const c = ch.codePointAt(0); if (c < 32 || (c >= 0xE000 && c <= 0xF8FF) || c === 0xFFFD || (c >= 0xF0000)) bad++; } return bad / t.length > 0.34; };
+const lineToMarkupsE86 = lineToMarkups; lineToMarkups = function (L, smp, layer) { const r = lineToMarkupsE86.apply(this, arguments); try { if (EDTX86 && r && r[0] && r[1]) r[1].coverId = r[0].id; } catch (e) {} return r; };
+const editAllTextE86 = editAllText; editAllText = async function () { if (!EDTX86) return editAllTextE86.apply(this, arguments); const pg = cur(); if (!pg) return; const its = await pageItems(pg).catch(() => []); if (!its.length) return noTextHelp();
+  const all = textLines(its).slice(0, 3000); if (!all.length) return noTextHelp(); const lines = all.filter(L => !unreadable86(L.str)), skipped = all.length - lines.length;
+  if (!lines.length) return noReadable86();
+  pushUndo(); const cv = [], tx = [], smp = baseSample(pg); for (const L of lines) { const [c, t] = lineToMarkups(L, smp); cv.push(c); tx.push(t); } S.markups = [...cv, ...S.markups, ...tx]; changed();
+  toast(`${lines.length} line${lines.length === 1 ? '' : 's'} of text can now be edited. Double-tap one to type.` + (skipped ? ` ${skipped} line${skipped === 1 ? '' : 's'} had no readable letters and ${skipped === 1 ? 'was' : 'were'} left alone.` : ''), 5200); };
+function noReadable86() { const md = modal(`<h3>This text cannot be edited here</h3><p>The page has a text layer, but its font carries no readable letters (common with CAD exports), so there is nothing to put in a text box. You can still draw over it, cover it with a filled box, or add your own text on top.</p><div class="acts"><button class="btn solid" id="etOk">OK</button></div>`); md.querySelector('#etOk').onclick = md.close; }
+const editTextAtE86 = editTextAt; editTextAt = async function (p) { if (!EDTX86) return editTextAtE86.apply(this, arguments); const pg = cur(); if (!pg) return; const hm = topHit(p); if (hm && hm.type === 'text' && editable(hm)) return startEdit(hm);
+  const its = await pageItems(pg).catch(() => []); if (!its.length) return noTextHelp(); const L = lineAt(textLines(its), p); if (!L) return toast('Tap right on the words you want to change.', 2200); if (unreadable86(L.str)) return noReadable86();
+  const [cover, txt] = lineToMarkups(L, baseSample(pg)); pushUndo(); S.markups.unshift(cover); S.markups.push(txt); S.sel = new Set([txt.id]); changed(); startEdit(txt); };
+/* deleting a text box takes its cover with it */
+const deleteSelE86 = deleteSel; deleteSel = function () { if (!EDTX86 || !S.sel.size) return deleteSelE86.apply(this, arguments); const covers = new Set(selMarkups().filter(m => m.coverId).map(m => m.coverId)); if (!covers.size) return deleteSelE86.apply(this, arguments);
+  const gone = new Set(selMarkups().filter(editable).map(m => m.id)); if (!gone.size) return toast('That markup is locked. Unlock it from its menu first.'); pushUndo(); S.markups = S.markups.filter(m => !gone.has(m.id) && !(covers.has(m.id) && m.cover)); S.sel.clear(); changed(); };
+HELP.push(['Editing the drawing’s own text', ['Hold on the page, "Make all the text on this page editable", or double-tap a line with the Edit text tool. Lines whose font has no readable letters (some CAD exports) are left alone and counted in the message. Deleting an editable text box also removes the white cover under it, so the original words show again.']]);
+Object.assign(RDX, { EDTX86, unreadable86, editAllText86: () => editAllText(), deleteSel86: () => deleteSel() });
+
+/* ---------- RELNOTES86 (iPad edition): "What's new" after an update ----------
+   The notes live here, newest first. On the first open of a new build (BUILD label differs from store 'seenRel86') a
+   "What's new" card shows the entries added since the build last seen (or the latest entry on a fresh install). Also
+   under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
+const RELNOTES86 = true;
+const RELNOTES = [
+  { v: '86.51', date: 'Nov 17, 2026', items: [
+    'Print: Save › Print… prints the sheet or the set, with or without markups. On a computer it opens the print dialog directly; on the iPad it hands the PDF to the share sheet, where Print is one of the options.',
+    'Save on a computer: Save writes over the document’s own file once you have chosen where it lives (Save as… picks the folder). Open keeps that connection too. On the iPad saving still goes through Files or the share sheet.',
+    'Links to a sheet can carry a view: after picking the sheet, drag a box on it; tapping the link lands zoomed to that box. Back returns as before.',
+    'Construction symbols: a legend library (electrical, lighting, plumbing, appliances, HVAC, general) with search, size S–XL, a highlight block behind the symbol, and the swatch colour. In the Symbols tool.',
+    'Keyboard: Alt+Z fits text boxes to their text; Ctrl-drag (Cmd on a Mac) drags away a copy; Shift while moving ignores the magnet, smart guides and grid.',
+    '“Make the text editable” leaves CAD text with no readable letters alone instead of covering it with blank boxes, and deleting an edited text box removes its white cover too.',
+    'Files: drag documents and folders onto folders or onto the path above the cards (hold to lift on touch); the … menu of a card at the bottom of the window stays on screen.',
+    'Side by side: the edited document stays on its own side when you switch sides.',
+    'Blueprint and the other drawing looks are reachable from More and on pages without markups; Sharpen scanned pages (Light/Strong) helps soft vendor sheets.',
+    'This What’s new card.' ] },
+  { v: '86.33', date: 'Nov 16, 2026', items: [
+    'Your Redline account: sign in with email and password (Settings › Redline account) and documents, markups, page names, folders and settings follow you between the iPad and the computer. PDFs are kept in the account by default; turn that off to sync markups only.',
+    'A background or accent chosen in Settings now wins over the festive look.' ] },
+  { v: '86.25', date: 'Nov 16, 2026', items: [
+    'Sheet sets: name pages from the title blocks, a sheet index to jump from, and linked callouts (tap a detail bubble, land on the detail).',
+    'Bring in a whole folder of PDFs (subfolders become folders); on the iPad as a ZIP.' ] }];
+const buildLabel86 = () => { try { return (typeof BUILD === 'string' ? BUILD : String(BUILD || '')).split('·')[0].trim(); } catch (e) { return ''; } };
+const relCmp = (a, b) => { const pa = a.split('.').map(Number), pb = b.split('.').map(Number); for (let i = 0; i < Math.max(pa.length, pb.length); i++) { const d = (pa[i] || 0) - (pb[i] || 0); if (d) return d; } return 0; };
+function relNotesDialog86(sinceV) { const list = sinceV ? RELNOTES.filter(n => relCmp(n.v, sinceV) > 0) : RELNOTES; const show = list.length ? list : RELNOTES.slice(0, 1);
+  const md = modal(`<h3>What’s new in Redline</h3><p class="muted" style="margin:0 0 8px">Build ${buildLabel86() || ''} · ${show.length === 1 ? show[0].date : show[show.length - 1].date + ' – ' + show[0].date}</p><div id="relBody" style="max-height:56vh;overflow:auto;display:grid;gap:12px"></div><div class="acts"><button class="btn line" id="relAll">All notes</button><span class="grow"></span><button class="btn solid" id="relOk">Got it</button></div>`), body = md.querySelector('#relBody');
+  const draw = (arr) => { body.innerHTML = ''; for (const n of arr) { const sec = document.createElement('div'); const h = document.createElement('div'); h.style.cssText = 'font-weight:700;font-size:14px;margin-bottom:4px'; h.textContent = n.v + ' · ' + n.date; const ul = document.createElement('ul'); ul.style.cssText = 'margin:0;padding-left:18px;display:grid;gap:5px;font-size:14px;line-height:1.4'; for (const t of n.items) { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); } sec.append(h, ul); body.appendChild(sec); } };
+  draw(show); md.querySelector('#relAll').onclick = () => { draw(RELNOTES); md.querySelector('#relAll').hidden = true; }; md.querySelector('#relOk').onclick = () => { store.set('seenRel86', buildLabel86()); md.close(); }; return md; }
+function relNotesMaybe86() { if (!RELNOTES86 || /[?&]nohome\b/.test(location.search)) return; /* the test harness opens with ?nohome */ const now = buildLabel86(); if (!now) return; const seen = store.get('seenRel86', ''); if (seen === now) return; if (!seen) { /* first run with notes: show only the latest entry */ if (document.querySelector('.scrim')) { setTimeout(relNotesMaybe86, 4000); return; } relNotesDialog86(RELNOTES[1] ? RELNOTES[1].v : ''); return; } if (document.querySelector('.scrim')) { setTimeout(relNotesMaybe86, 4000); return; } if (!RELNOTES.some(n => relCmp(n.v, seen) > 0)) { store.set('seenRel86', now); return; } /* a build with no new note: nothing to show */ relNotesDialog86(seen); }
+setTimeout(relNotesMaybe86, 2600);
+const extraItemsR86 = extraItems86; extraItems86 = function (where) { const r = extraItemsR86.apply(this, arguments) || []; if (!RELNOTES86 || where !== 'doc') return r; return [...r, { label: 'What’s new in Redline', note: 'build ' + buildLabel86(), icon: 'help', fn: () => relNotesDialog86('') }]; };
+HELP.push(['What’s new', ['After an update, a card lists what changed since the build you last used. See it again any time: ⋯ More › What’s new in Redline.']]);
+Object.assign(RDX, { RELNOTES86, RELNOTES, relNotesDialog86, relNotesMaybe86 });
+
+/* ---------- PRINT86 (iPad edition): Print… from the Save menu ----------
+   Builds a PDF (this page / all / a range; markups burned in or left out) with buildPdf. On a computer the PDF goes into a
+   hidden iframe and the browser's print dialog opens on it (Chrome, Edge, Firefox); Safari on a Mac prints an iframe
+   PDF blank, so there it opens in a new tab with a hint to press ⌘P. On iPadOS and iOS there is no scripted print of a
+   PDF: the PDF is handed to the share sheet, where Print is one of the options (AirPrint, or Save to Files).
+   Switch: PRINT86. */
+const PRINT86 = true;
+const isApplePad = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isSafariDesk = () => !isApplePad() && /Safari\//.test(navigator.userAgent) && !/Chrome\/|Chromium\/|Edg\/|OPR\//.test(navigator.userAgent);
+function printDialog86() { if (!S.pages.length) return toast('Open a document first'); const st = Object.assign({ pages: 'this', markups: true }, store.get('print86', {}) || {});
+  const md = modal(`<h3>Print</h3><div style="display:grid;gap:10px"><div><div class="muted" style="font-size:12.5px;margin-bottom:4px">Pages</div><div class="xseg" data-k="pages"><button class="btn" data-v="this">This page</button><button class="btn" data-v="all">All ${S.pages.length}</button><button class="btn" data-v="range">Range</button></div><input id="prRange" placeholder="e.g. 1-3, 7" style="margin-top:6px;width:100%" hidden></div>
+    <div><div class="muted" style="font-size:12.5px;margin-bottom:4px">Markups</div><div class="xseg" data-k="markups"><button class="btn" data-v="1">Printed on the sheet</button><button class="btn" data-v="0">Left out</button></div></div>
+    <p class="muted" style="font-size:12.5px;margin:0">${isApplePad() ? 'The PDF opens in the share sheet: choose Print there (or Save to Files).' : 'The print dialog opens with the sheet. Pick the printer’s paper size and “Fit to page” there.'}</p></div><div class="acts"><button class="btn line" id="prNo">Cancel</button><button class="btn solid" id="prOk">${isApplePad() ? 'Continue' : 'Print…'}</button></div>`);
+  const seg = k => md.querySelector(`.xseg[data-k="${k}"]`), paint = () => { md.querySelectorAll('.xseg').forEach(sg => sg.querySelectorAll('.btn').forEach(b => b.classList.toggle('on', b.dataset.v === String(sg.dataset.k === 'markups' ? (st.markups ? 1 : 0) : st.pages)))); md.querySelector('#prRange').hidden = st.pages !== 'range'; };
+  seg('pages').onclick = e => { const b = e.target.closest('.btn'); if (!b) return; st.pages = b.dataset.v; paint(); if (st.pages === 'range') md.querySelector('#prRange').focus(); }; seg('markups').onclick = e => { const b = e.target.closest('.btn'); if (!b) return; st.markups = b.dataset.v === '1'; paint(); }; paint();
+  md.querySelector('#prRange').onkeydown = e => e.stopPropagation(); md.querySelector('#prNo').onclick = md.close;
+  md.querySelector('#prOk').onclick = async () => { let pages = null; if (st.pages === 'this') pages = [cur()]; else if (st.pages === 'range') { pages = parseRange86(md.querySelector('#prRange').value, S.pages.length).map(i => S.pages[i]); if (!pages.length) return toast('Enter page numbers like 1-3, 7'); } store.set('print86', { pages: st.pages, markups: st.markups }); md.close(); await printPages86(pages, st.markups); }; }
+function parseRange86(txt, n) { const out = new Set(); for (const part of String(txt || '').split(/[,\s]+/)) { if (!part) continue; const m = /^(\d+)(?:-(\d+))?$/.exec(part); if (!m) continue; const a = Math.max(1, +m[1]), b = Math.min(n, +(m[2] || m[1])); for (let i = a; i <= b; i++) out.add(i - 1); } return [...out].sort((a, b) => a - b); }
+async function printPages86(pages, withMarkups) { commitEdit(); await busy('Preparing to print…'); let bytes; try { bytes = withMarkups ? await buildPdf({ flatten: true, pages, summary: false }) : await pdfWithoutMarkups86(pages); } catch (e) { busy(null); console.error(e); return toast('The pages could not be prepared for printing.', 4000); } busy(null);
+  const blob = new Blob([bytes], { type: 'application/pdf' }), name = safeName() + '.pdf';
+  if (isApplePad()) { if (navigator.canShare && navigator.share) { toast('Choose Print in the share sheet', 3500); return deliver(name, blob); } return saveFile(name, blob); }
+  const url = URL.createObjectURL(blob); if (isSafariDesk()) { const w = window.open(url, '_blank'); if (!w) return saveFile(name, blob); toast('Press ⌘P in the new tab to print.', 4000); return; }
+  let fr = $('printFrame86'); if (fr) fr.remove(); fr = document.createElement('iframe'); fr.id = 'printFrame86'; fr.style.cssText = 'position:fixed;right:0;bottom:0;width:1px;height:1px;opacity:0;border:0;pointer-events:none'; fr.src = url; document.body.appendChild(fr);
+  let done = false; const go = () => { if (done) return; done = true; try { fr.contentWindow.focus(); fr.contentWindow.print(); } catch (e) { console.warn(e); window.open(url, '_blank'); toast('The print dialog could not open here; the PDF opened in a new tab — print it from there.', 5000); } setTimeout(() => { URL.revokeObjectURL(url); }, 120000); };
+  fr.onload = () => setTimeout(go, 400); setTimeout(go, 3500); }
+/* a flattened PDF with the markups left out = the original pages only */
+async function pdfWithoutMarkups86(pages) { const keep = S.markups; try { S.markups = []; return await buildPdf({ flatten: true, pages, summary: false }); } finally { S.markups = keep; } }
+/* the Save menu is built at boot (after this part runs): adjust it once it exists; other parts add to SAVE_ADJ86 */
+const SAVE_ADJ86 = [];
+SAVE_ADJ86.push(items => { if (!PRINT86) return; const i = items.findIndex(x => x && /Save to/.test(x.label || '')); const it = { label: 'Print…', note: isApplePad() ? 'through the share sheet' : 'the print dialog', icon: 'save', fn: printDialog86 }; if (i >= 0) items.splice(i + 1, 0, it); else items.push(it); });
+setTimeout(() => { const base = window.saveItems; if (typeof base !== 'function') return; window.saveItems = () => { const items = base(); for (const f of SAVE_ADJ86) { try { f(items); } catch (e) { console.warn(e); } } return items; }; const b = $('bSave'); if (b) b.onclick = () => menu(b, window.saveItems()); }, 0);
+document.addEventListener('keydown', e => { if (!PRINT86 || !(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'p' || e.shiftKey || e.altKey) return; if (!$('files').hidden || !S.pages.length) return; e.preventDefault(); printDialog86(); }, true);
+HELP.push(['Printing', ['Save › Print… (or Ctrl+P / ⌘P): this page, all pages or a range, with the markups printed on the sheet or left out. On a computer the print dialog opens; on the iPad the PDF goes to the share sheet, where Print is one of the choices.']]);
+Object.assign(RDX, { PRINT86, printDialog86, printPages86, parseRange86 });
+
+/* ---------- SAVE86 (iPad edition): Save writes over the document's own file on a computer ----------
+   On desktop Chrome / Edge (the File System Access API): Open uses the system file picker and remembers the file; Save
+   (markups editable) writes over that file; "Save as…" picks a new place and re-links; flattened PDFs, images, CSVs and
+   reports always ask where to go instead of landing in Downloads. The link (a FileSystemFileHandle) is kept in IndexedDB
+   per document and survives reloads; the browser asks once per session before the first write. Safari, Firefox and the
+   iPad have no such API, so they keep the download / Files / share-sheet behaviour. Switch: SAVE86. */
+const SAVE86 = true;
+const fsOK86 = () => SAVE86 && !window.__rdNoFS86 && typeof window.showSaveFilePicker === 'function' && typeof window.showOpenFilePicker === 'function' && !isApplePad();
+const FSH = { map: new Map(), mode: null };
+async function fshGet(id) { if (!id) return null; if (FSH.map.has(id)) return FSH.map.get(id); let h = null; try { h = await idb.get('fsh:' + id); } catch (e) {} FSH.map.set(id, h || null); return h || null; }
+async function fshSet(id, h) { if (!id) return; FSH.map.set(id, h || null); try { if (h) await idb.put('fsh:' + id, h); else await idb.del('fsh:' + id); } catch (e) {} }
+async function fshAllowed(h, ask) { try { let p = await h.queryPermission({ mode: 'readwrite' }); if (p === 'prompt' && ask) p = await h.requestPermission({ mode: 'readwrite' }); return p === 'granted'; } catch (e) { return false; } }
+async function fshWrite(h, blob) { const w = await h.createWritable(); await w.write(blob); await w.close(); }
+const PICK_TYPES86 = { pdf: [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }], png: [{ description: 'PNG image', accept: { 'image/png': ['.png'] } }], jpg: [{ description: 'JPEG image', accept: { 'image/jpeg': ['.jpg', '.jpeg'] } }], csv: [{ description: 'CSV', accept: { 'text/csv': ['.csv'] } }], zip: [{ description: 'ZIP', accept: { 'application/zip': ['.zip'] } }], json: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }] };
+/* saveFile: over the linked file, or through the picker */
+const saveFileS86 = saveFile; saveFile = async function (filename, data) { if (!fsOK86()) return saveFileS86.apply(this, arguments); const blob = data instanceof Blob ? data : new Blob([data]); const ext = (String(filename).match(/\.([a-z0-9]+)$/i) || [, ''])[1].toLowerCase(), isPdf = ext === 'pdf', mode = FSH.mode; FSH.mode = null;
+  if (isPdf && mode === 'over' && S.docId) { const h = await fshGet(S.docId); if (h) { if (await fshAllowed(h, true)) { try { await fshWrite(h, blob); toast('Saved over ' + h.name, 2600); return true; } catch (e) { console.warn(e); toast('Could not write ' + h.name + ' — choose where to save it.', 3500); } } else toast('No permission to write ' + h.name + ' — choose where to save it.', 3500); } }
+  let h; try { h = await window.showSaveFilePicker({ suggestedName: filename, types: PICK_TYPES86[ext] || undefined, excludeAcceptAllOption: false }); } catch (e) { if (e && e.name === 'AbortError') { toast('Save cancelled.', 1800); return false; } console.warn(e); return saveFileS86.apply(this, arguments); }
+  try { await fshWrite(h, blob); } catch (e) { console.warn(e); toast('That file could not be written. Downloading instead.', 3500); return saveFileS86.apply(this, arguments); }
+  if (isPdf && (mode === 'over' || mode === 'as') && S.docId) { await fshSet(S.docId, h); S.dirty = false; toast('Saved as ' + h.name + '. Save now writes over it.', 3200); } else toast('Saved ' + h.name, 2200); return true; };
+const savePdfS86 = savePdf; savePdf = async function (flatten, only) { FSH.mode = !flatten && !only ? 'over' : null; try { return await savePdfS86.apply(this, arguments); } finally { FSH.mode = null; } };
+async function saveAs86() { FSH.mode = 'as'; try { await savePdfS86(false); } finally { FSH.mode = null; } }
+/* Open through the system picker, keeping the file link */
+async function openPicked86(which) { let hs; try { hs = await window.showOpenFilePicker({ multiple: true, types: [{ description: 'PDFs and pictures', accept: { 'application/pdf': ['.pdf'], 'image/*': ['.png', '.jpg', '.jpeg', '.heic', '.heif', '.webp'] } }] }); } catch (e) { return; }
+  if (!hs || !hs.length) return; const files = []; for (const h of hs) { try { files.push(await h.getFile()); } catch (e) {} } if (!files.length) return;
+  if (which === 'import' || files.length > 1) { await importDocs(files); return; } await openFile(files[0], false); if (S.docId && /\.pdf$/i.test(files[0].name)) await fshSet(S.docId, hs[0]); }
+for (const [id, which] of [['fOpen', 'open'], ['fImport', 'import']]) document.addEventListener('click', e => { if (!fsOK86()) return; const el = $(id); if (!el || e.target !== el) return; e.preventDefault(); e.stopImmediatePropagation(); openPicked86(which); }, true);
+/* the Save menu: Save as…, and a note on what Save does */
+SAVE_ADJ86.push(items => { if (!fsOK86()) return; const h = FSH.map.get(S.docId); const i = items.findIndex(x => x && x.label === 'Save PDF'); if (i >= 0 && h) items[i] = { ...items[i], note: 'writes over ' + h.name }; items.splice(i >= 0 ? i + 1 : 0, 0, { label: 'Save as…', note: h ? 'a new place for the file' : 'choose where the file lives', icon: 'save', fn: saveAs86 }); });
+/* ask for permission while the click is fresh, so a long PDF build does not lose it */
+document.addEventListener('pointerdown', e => { if (!fsOK86() || !S.docId) return; const b = e.target.closest && e.target.closest('#bSave'); if (!b) return; fshGet(S.docId).then(h => { if (h) fshAllowed(h, true); }); }, true);
+const openDocSv86 = openDoc; openDoc = async function (id) { const r = await openDocSv86.apply(this, arguments); if (fsOK86() && S.docId) fshGet(S.docId); return r; };
+HELP.push(['Saving on a computer', ['In Chrome or Edge, Open uses the file picker and remembers the file. Save then writes over that same file (markups stay editable in it); Save as… picks a new place. Flattened PDFs, images and reports always ask where to go. The browser asks once per session before the first write.']]);
+Object.assign(RDX, { SAVE86, fsOK86, FSH, saveAs86 });
+
+/* ---------- LINKBOX86 (iPad edition): a link to a sheet can land on an exact view ----------
+   After a sheet is picked in "Link to a sheet…", a second card shows that sheet; dragging a box on it (finger, Pencil or
+   mouse) stores m.link.box = { fx, fy, fw, fh } as fractions of the sheet as displayed. Following the link then zooms to
+   that box instead of fitting the whole page (Back returns to where you were, as before). "Whole sheet" skips the box.
+   Works for sheets in this document and in another document. Switch: LINKBOX86. */
+const LINKBOX86 = true;
+function linkViewDialog86(m, pageInfo, docId) { return new Promise(res => { const md = modal(`<h3>Where should the link land?</h3><p class="muted" style="margin:0 0 6px">Drag a box around the part of the sheet to show. Leave it and choose Whole sheet to fit the page.</p><div id="lvWrap" style="position:relative;max-height:60vh;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:#eee;touch-action:none;user-select:none;-webkit-user-select:none"><canvas id="lvCv" style="display:block;width:100%;height:auto"></canvas><div id="lvBox" style="position:absolute;border:2px solid var(--accent);background:rgba(0,122,255,.14);display:none;pointer-events:none"></div></div><div class="acts"><button class="btn line" id="lvNo">Cancel</button><button class="btn line" id="lvWhole">Whole sheet</button><span class="grow"></span><button class="btn solid" id="lvOk" disabled>Use this view</button></div>`); md.querySelector('.modal').classList.add('wide');
+  const cv = md.querySelector('#lvCv'), bx = md.querySelector('#lvBox'), wrap = md.querySelector('#lvWrap'), ok = md.querySelector('#lvOk'); let box = m.link && m.link.box || null, drag = null, done = false;
+  const finish = v => { if (done) return; done = true; md.close(); res(v); }; md.querySelector('#lvNo').onclick = () => finish(undefined); md.querySelector('#lvWhole').onclick = () => finish(null); ok.onclick = () => finish(box);
+  const paintBox = () => { if (!box) { bx.style.display = 'none'; ok.disabled = true; return; } const r = cv.getBoundingClientRect(), wr = wrap.getBoundingClientRect(); bx.style.display = 'block'; bx.style.left = (r.left - wr.left + box.fx * r.width) + 'px'; bx.style.top = (r.top - wr.top + box.fy * r.height) + 'px'; bx.style.width = (box.fw * r.width) + 'px'; bx.style.height = (box.fh * r.height) + 'px'; ok.disabled = box.fw < 0.02 || box.fh < 0.02; };
+  const frac = e => { const r = cv.getBoundingClientRect(); return { x: Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), y: Math.min(1, Math.max(0, (e.clientY - r.top) / r.height)) }; };
+  wrap.onpointerdown = e => { if (e.button > 0) return; e.preventDefault(); wrap.setPointerCapture(e.pointerId); drag = { a: frac(e), id: e.pointerId }; box = { fx: drag.a.x, fy: drag.a.y, fw: 0, fh: 0 }; paintBox(); };
+  wrap.onpointermove = e => { if (!drag || e.pointerId !== drag.id) return; const b = frac(e); box = { fx: Math.min(drag.a.x, b.x), fy: Math.min(drag.a.y, b.y), fw: Math.abs(b.x - drag.a.x), fh: Math.abs(b.y - drag.a.y) }; paintBox(); };
+  wrap.onpointerup = wrap.onpointercancel = e => { if (drag && e.pointerId === drag.id) drag = null; if (box && (box.fw < 0.02 || box.fh < 0.02)) { box = null; paintBox(); } };
+  const show = img => { if (!img) { cv.width = 800; cv.height = 600; const x = cv.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, 800, 600); x.fillStyle = '#888'; x.font = '20px sans-serif'; x.fillText('No preview of this sheet is available here', 40, 300); return; } cv.width = img.width; cv.height = img.height; cv.getContext('2d').drawImage(img, 0, 0); paintBox(); };
+  (async () => { try { if (docId === S.docId && pageInfo.pg) { const c = await pageImage86(pageInfo.pg, 1600, true, 'image/png'); show(c); } else show(await pvOf(pageInfo)); } catch (e) { console.warn(e); show(null); } })(); }); }
+function applyLinkBox86(box) { if (!box || !cur() || S.scroll) return; const pg = cur(), vs = vSize(pg), pad = TOUCH ? 12 : 24, bw = Math.max(1, box.fw * vs.w), bh = Math.max(1, box.fh * vs.h); const s = clamp(Math.min((W - 2 * pad) / bw, (H - 2 * pad) / bh), zMin(), zMax()); S.view = { s, tx: (W - bw * s) / 2 - box.fx * vs.w * s, ty: (H - bh * s) / 2 - box.fy * vs.h * s }; viewChanged(); }
+/* the picker: wrap each sheet tile so the view step follows the pick */
+const linkPickerL86 = linkPicker; linkPicker = async function (m) { const r = await linkPickerL86.apply(this, arguments); if (!LINKBOX86 || !m) return r; const md = [...document.querySelectorAll('.scrim .modal')].pop(), grid = md && md.querySelector('#lkGrid'), sel = md && md.querySelector('#lkDoc'); if (!grid) return r;
+  const wrapTiles = () => { for (const b of grid.querySelectorAll('button.sptile')) { if (b.dataset.lv) continue; b.dataset.lv = '1'; const orig = b.onclick; b.onclick = async ev => { const docId = sel ? sel.value : S.docId, label = (b.querySelector('b') || {}).textContent || ''; orig && orig(ev); if (!m.link) return; const info = linkPageInfo86(docId, m.link.v, label); const box = await linkViewDialog86(m, info, docId); if (box === undefined) return; pushUndo(); if (box) m.link.box = box; else delete m.link.box; changed(); toast(box ? 'Linked to that view. Tap the blue ↗ to jump there.' : 'Linked to the whole sheet.', 2600); }; } };
+  wrapTiles(); new MutationObserver(wrapTiles).observe(grid, { childList: true }); return r; };
+function linkPageInfo86(docId, pid, label) { if (docId === S.docId) { const p = S.pages.find(x => x.id === pid); return p ? { pg: p, id: p.id, src: p.src, n: p.n, rot: ((p.baseRot || 0) + (p.rot || 0)) % 360, w: p.w, h: p.h, label } : { label }; } const e = typeof SIDX !== 'undefined' && SIDX && SIDX[docId]; const p = e && e.pages.find(x => x.id === pid); return p || { label }; }
+/* following: after the jump, zoom to the box */
+const followLinkL86 = followLink; followLink = function (m) { const r = followLinkL86.apply(this, arguments); try { if (!LINKBOX86 || !m || !m.link || !m.link.box) return r; const l = m.link; if (l.kind === 'page') { if (cur() && cur().id === l.v) applyLinkBox86(l.box); }
+    else if (l.kind === 'doc') { const t0 = Date.now(); const tick = () => { if (S.docId === l.doc && cur() && cur().id === l.v) { applyLinkBox86(l.box); renderBase(); return; } if (Date.now() - t0 < 12000) setTimeout(tick, 150); }; setTimeout(tick, 150); } } catch (e) { console.warn(e); } return r; };
+HELP.push(['Links that land on a view', ['Hold on a markup, Link to a sheet…, pick the sheet, then drag a box on it: tapping the blue ↗ lands zoomed to that box. Choose Whole sheet to fit the page instead. Back returns to where you were.']]);
+Object.assign(RDX, { LINKBOX86, applyLinkBox86, linkViewDialog86, linkPicker86: m => linkPicker(m), followLink86: m => followLink(m) });
 
 /* ---------- wiring ---------- */
 function nameDialog() { const m = modal(`<h3>Your name on markups</h3><p>Saved with each markup and shown in the markup list and on dated stamps.</p><label>Name<input type="text" id="auName" maxlength="60" autocomplete="name"></label>

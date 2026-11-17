@@ -167,3 +167,14 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   (setProp stroke). placeSymbol wrapper applies size/halo and records recents; keeps placing until another tool. Selected
   symbols: context menu Highlight on/off, Bigger, Smaller, Another symbol…; properties panel checkbox. Test t133.js (picker,
   filter, search, placement with size/halo/colour, menu actions, swatch recolour, flattened PDF shows the symbol).
+- `app90.js` KEYS86 — Alt+Z fits selected text boxes (fitBoxSel); Ctrl/Cmd-drag with the arrow tool duplicates in place and
+  the ordinary move takes the copies; Shift while moving/resizing turns off magnet, smart guides, grid and page guides for
+  that gesture (gridCfg + moveSnap wrappers). `app91.js` EDTX86 — "make the text editable" skips lines whose text is
+  unreadable private-use glyphs (CAD fonts) and says so, or explains when nothing is readable; text boxes remember their
+  cover (coverId) and deleteSel removes both. `app92.js` RELNOTES86 — What's new card after an update (RELNOTES list; store
+  seenRel86; skipped under ?nohome; More › What's new). `app93.js` PRINT86 — Save › Print… / Ctrl+P: pages, markups on or
+  off; desktop → hidden iframe print of the PDF (Safari desktop → new tab); iPad → share sheet. `app94.js` SAVE86 — on
+  desktop Chrome/Edge: Open through showOpenFilePicker keeps the handle (idb fsh:<doc>), Save (markups editable) writes
+  over it, Save as… re-links, everything else asks where; permission requested on the Save button press; tests set
+  window.__rdNoFS86 unless they stub the pickers. `app95.js` LINKBOX86 — Link to a sheet… then drag a box on the sheet
+  (m.link.box fractions); followLink zooms to it (same doc and other doc). Test t134.js; SAVE_ADJ86 adjusts the Save menu.

@@ -1,0 +1,34 @@
+/* ---------- PRINT86 (iPad edition): Print… from the Save menu ----------
+   Builds a PDF (this page / all / a range; markups burned in or left out) with buildPdf. On a computer the PDF goes into a
+   hidden iframe and the browser's print dialog opens on it (Chrome, Edge, Firefox); Safari on a Mac prints an iframe
+   PDF blank, so there it opens in a new tab with a hint to press ⌘P. On iPadOS and iOS there is no scripted print of a
+   PDF: the PDF is handed to the share sheet, where Print is one of the options (AirPrint, or Save to Files).
+   Switch: PRINT86. */
+const PRINT86 = true;
+const isApplePad = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isSafariDesk = () => !isApplePad() && /Safari\//.test(navigator.userAgent) && !/Chrome\/|Chromium\/|Edg\/|OPR\//.test(navigator.userAgent);
+function printDialog86() { if (!S.pages.length) return toast('Open a document first'); const st = Object.assign({ pages: 'this', markups: true }, store.get('print86', {}) || {});
+  const md = modal(`<h3>Print</h3><div style="display:grid;gap:10px"><div><div class="muted" style="font-size:12.5px;margin-bottom:4px">Pages</div><div class="xseg" data-k="pages"><button class="btn" data-v="this">This page</button><button class="btn" data-v="all">All ${S.pages.length}</button><button class="btn" data-v="range">Range</button></div><input id="prRange" placeholder="e.g. 1-3, 7" style="margin-top:6px;width:100%" hidden></div>
+    <div><div class="muted" style="font-size:12.5px;margin-bottom:4px">Markups</div><div class="xseg" data-k="markups"><button class="btn" data-v="1">Printed on the sheet</button><button class="btn" data-v="0">Left out</button></div></div>
+    <p class="muted" style="font-size:12.5px;margin:0">${isApplePad() ? 'The PDF opens in the share sheet: choose Print there (or Save to Files).' : 'The print dialog opens with the sheet. Pick the printer’s paper size and “Fit to page” there.'}</p></div><div class="acts"><button class="btn line" id="prNo">Cancel</button><button class="btn solid" id="prOk">${isApplePad() ? 'Continue' : 'Print…'}</button></div>`);
+  const seg = k => md.querySelector(`.xseg[data-k="${k}"]`), paint = () => { md.querySelectorAll('.xseg').forEach(sg => sg.querySelectorAll('.btn').forEach(b => b.classList.toggle('on', b.dataset.v === String(sg.dataset.k === 'markups' ? (st.markups ? 1 : 0) : st.pages)))); md.querySelector('#prRange').hidden = st.pages !== 'range'; };
+  seg('pages').onclick = e => { const b = e.target.closest('.btn'); if (!b) return; st.pages = b.dataset.v; paint(); if (st.pages === 'range') md.querySelector('#prRange').focus(); }; seg('markups').onclick = e => { const b = e.target.closest('.btn'); if (!b) return; st.markups = b.dataset.v === '1'; paint(); }; paint();
+  md.querySelector('#prRange').onkeydown = e => e.stopPropagation(); md.querySelector('#prNo').onclick = md.close;
+  md.querySelector('#prOk').onclick = async () => { let pages = null; if (st.pages === 'this') pages = [cur()]; else if (st.pages === 'range') { pages = parseRange86(md.querySelector('#prRange').value, S.pages.length).map(i => S.pages[i]); if (!pages.length) return toast('Enter page numbers like 1-3, 7'); } store.set('print86', { pages: st.pages, markups: st.markups }); md.close(); await printPages86(pages, st.markups); }; }
+function parseRange86(txt, n) { const out = new Set(); for (const part of String(txt || '').split(/[,\s]+/)) { if (!part) continue; const m = /^(\d+)(?:-(\d+))?$/.exec(part); if (!m) continue; const a = Math.max(1, +m[1]), b = Math.min(n, +(m[2] || m[1])); for (let i = a; i <= b; i++) out.add(i - 1); } return [...out].sort((a, b) => a - b); }
+async function printPages86(pages, withMarkups) { commitEdit(); await busy('Preparing to print…'); let bytes; try { bytes = withMarkups ? await buildPdf({ flatten: true, pages, summary: false }) : await pdfWithoutMarkups86(pages); } catch (e) { busy(null); console.error(e); return toast('The pages could not be prepared for printing.', 4000); } busy(null);
+  const blob = new Blob([bytes], { type: 'application/pdf' }), name = safeName() + '.pdf';
+  if (isApplePad()) { if (navigator.canShare && navigator.share) { toast('Choose Print in the share sheet', 3500); return deliver(name, blob); } return saveFile(name, blob); }
+  const url = URL.createObjectURL(blob); if (isSafariDesk()) { const w = window.open(url, '_blank'); if (!w) return saveFile(name, blob); toast('Press ⌘P in the new tab to print.', 4000); return; }
+  let fr = $('printFrame86'); if (fr) fr.remove(); fr = document.createElement('iframe'); fr.id = 'printFrame86'; fr.style.cssText = 'position:fixed;right:0;bottom:0;width:1px;height:1px;opacity:0;border:0;pointer-events:none'; fr.src = url; document.body.appendChild(fr);
+  let done = false; const go = () => { if (done) return; done = true; try { fr.contentWindow.focus(); fr.contentWindow.print(); } catch (e) { console.warn(e); window.open(url, '_blank'); toast('The print dialog could not open here; the PDF opened in a new tab — print it from there.', 5000); } setTimeout(() => { URL.revokeObjectURL(url); }, 120000); };
+  fr.onload = () => setTimeout(go, 400); setTimeout(go, 3500); }
+/* a flattened PDF with the markups left out = the original pages only */
+async function pdfWithoutMarkups86(pages) { const keep = S.markups; try { S.markups = []; return await buildPdf({ flatten: true, pages, summary: false }); } finally { S.markups = keep; } }
+/* the Save menu is built at boot (after this part runs): adjust it once it exists; other parts add to SAVE_ADJ86 */
+const SAVE_ADJ86 = [];
+SAVE_ADJ86.push(items => { if (!PRINT86) return; const i = items.findIndex(x => x && /Save to/.test(x.label || '')); const it = { label: 'Print…', note: isApplePad() ? 'through the share sheet' : 'the print dialog', icon: 'save', fn: printDialog86 }; if (i >= 0) items.splice(i + 1, 0, it); else items.push(it); });
+setTimeout(() => { const base = window.saveItems; if (typeof base !== 'function') return; window.saveItems = () => { const items = base(); for (const f of SAVE_ADJ86) { try { f(items); } catch (e) { console.warn(e); } } return items; }; const b = $('bSave'); if (b) b.onclick = () => menu(b, window.saveItems()); }, 0);
+document.addEventListener('keydown', e => { if (!PRINT86 || !(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'p' || e.shiftKey || e.altKey) return; if (!$('files').hidden || !S.pages.length) return; e.preventDefault(); printDialog86(); }, true);
+HELP.push(['Printing', ['Save › Print… (or Ctrl+P / ⌘P): this page, all pages or a range, with the markups printed on the sheet or left out. On a computer the print dialog opens; on the iPad the PDF goes to the share sheet, where Print is one of the choices.']]);
+Object.assign(RDX, { PRINT86, printDialog86, printPages86, parseRange86 });
