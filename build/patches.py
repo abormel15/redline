@@ -77,4 +77,8 @@ function bandPts(pts, W) {""",
   "'Every markup on this page'}. Tap a new color for any of them.",
   "noMk86 ? 'No markups on this page yet' : 'Every markup on this page'}. ${noMk86 ? 'The drawing display below still applies.' : 'Tap a new color for any of them.'}",
   'see above'),
+ ('MENU86: an anchored menu near the bottom of the screen opens upward (or is clamped) instead of running off the screen',
+  "el.style.left = clamp(r.right - w, 8, window.innerWidth - w - 8) + 'px'; el.style.top = (r.bottom + 4) + 'px'; openMenu = el;",
+  "el.style.left = clamp(r.right - w, 8, window.innerWidth - w - 8) + 'px'; const mh = el.offsetHeight; let mt = r.bottom + 4; if (mt + mh > window.innerHeight - 8) mt = r.top - 4 - mh >= 8 ? r.top - 4 - mh : Math.max(8, window.innerHeight - mh - 8); el.style.top = mt + 'px'; openMenu = el;",
+  'the … menu of the last row of Files cards was cut off and the page could not scroll to it'),
 ]

@@ -150,3 +150,8 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   applied after pcv to the base, detail and neighbour canvases, cached per canvas; ~140 ms for 6 MP here. For sheets that are
   low-resolution pictures inside the PDF (vendor details, scans). The rendering pipeline itself was checked: the detail layer
   already renders at screen resolution (10 MP budget on touch devices), so softness on such pages is the file's own.
+- MENU86 patch — an anchored menu (the … on a Files card, and every other menu()) that would run past the bottom of the window
+  now opens upward, or is clamped to the window and scrolls. `app87.js` DND86 — drag and drop in Files: mouse drags on 8 px;
+  touch/Pencil hold ~400 ms to lift (a hold with no move still opens the card menu; a quick swipe scrolls); drop on folder cards
+  or on the breadcrumb (Projects / parent folder); a multi-selection drags together (badge); same bookkeeping as Move to a
+  folder; cycle guard. Thumbnail images are made non-draggable (a native image drag cancelled the pointer). Test t131.js.
