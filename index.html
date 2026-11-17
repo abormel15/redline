@@ -8529,7 +8529,7 @@ try { HELP.push(['Choosing what goes in a report', ['Every report that lists mar
 Object.assign(RDX, { reportChooser, reportDialog, runReport, RC_FOR, rcKind, RF: () => RF_ONLY });
 
 /* ---------- V81: hold-to-straighten sign, and which version is running ---------- */
-const BUILD = '86.55 · Nov 17 2026 · iPad edition';
+const BUILD = '86.61 · Nov 17 2026 · iPad edition';
 try { const st = document.createElement('style'); st.textContent = `#snapCue{position:fixed;z-index:60;pointer-events:none;padding:6px 12px;border-radius:999px;background:#17212b;color:#fff;font:600 14px var(--ui,system-ui);box-shadow:0 2px 10px #0004;opacity:0;transform:scale(.6);transition:opacity .12s,transform .12s;white-space:nowrap}
 #snapCue.on{opacity:1;transform:scale(1);animation:snapPop .32s ease-out}@keyframes snapPop{0%{transform:scale(.6)}55%{transform:scale(1.15)}100%{transform:scale(1)}}`; document.head.appendChild(st); } catch (e) {}
 // the sign never outlives the stroke, whatever ends it
@@ -9551,19 +9551,27 @@ Object.assign(RDX, { DND86, dndMove, dndTargetAt, DND });
 const SPLIT86 = true;
 const SW = { quiet: false };
 const busySw86 = busy; busy = function (msg) { if (SPLIT86 && SW.quiet) return Promise.resolve(); return busySw86.apply(this, arguments); };
+const afterLoadExtrasSw86 = afterLoadExtras; afterLoadExtras = function () { if (!(SPLIT86 && SW.quiet)) return afterLoadExtrasSw86.apply(this, arguments); S.navBack = []; $('backTag').hidden = true; S.tsel = null; S.textItems = null; /* during the swap the second view is about to be refilled: do not blank it or render a stray page */ };
 const closeSplitSw86 = closeSplit; closeSplit = function () { if (SPLIT86 && SW.quiet) return; return closeSplitSw86.apply(this, arguments); };
 const p2SwapDocsV85 = p2SwapDocs; p2SwapDocs = async function () { if (!SPLIT86) return p2SwapDocsV85.apply(this, arguments);
   const other = P2.doc && P2.doc.id, mine = S.docId, pv = { s: P2.s, tx: P2.tx, ty: P2.ty }, mv = { s: S.view.s, tx: S.view.tx, ty: S.view.ty }, was = !!S.swapSides, tool = S.tool, mySrc = Object.keys(S.sources); if (!other || !mine || S.sample) return;
+  const oldMain = S.base, oldP2 = P2.base, oldP2pid = P2.pid; /* the rendered canvases of both sides: each becomes the other side's first picture, so nothing goes blank */
   SW.quiet = true; try {
     SW.t = {}; let t0 = performance.now(); await openDoc(other); SW.t.open = Math.round(performance.now() - t0); if (S.docId !== other) return;
+    if (oldP2pid && cur() && cur().id !== oldP2pid) { const i = S.pages.findIndex(p => p.id === oldP2pid); if (i >= 0) goPage(i, true); } /* edit the page that was showing, not the page last saved */
+    SW.t.seedMain = { has: !!(oldP2 && oldP2.cv), w: oldP2 && oldP2.cv ? oldP2.cv.width : -1, pidOk: !!(oldP2 && cur() && oldP2.pid === cur().id), baseNow: S.base ? S.base.page === cur().id : null };
+    if (oldP2 && oldP2.cv && oldP2.cv.width && cur() && oldP2.pid === cur().id && (!S.base || S.base.page !== cur().id)) { const cl = cloneCv86(oldP2.cv); if (cl) { S.base = { cv: cl, k: cl.width / vSize(cur()).w, page: cur().id, rot: cur().rot }; requestDraw(); } }
     t0 = performance.now(); for (const id of mySrc) { if (!S.sources[id] && typeof pdfWarm !== 'undefined' && pdfWarm.has(id)) { S.sources[id] = pdfWarm.get(id); pdfWarm.delete(id); } } /* the document moving to the second view keeps its parsed PDF */
     await p2OpenDoc(mine); SW.t.p2 = Math.round(performance.now() - t0); if (!S.split) openSplit();
+    SW.t.seedP2 = { has: !!(oldMain && oldMain.cv), w: oldMain && oldMain.cv ? oldMain.cv.width : -1, pidOk: !!(oldMain && oldMain.page === P2.pid), baseNow: P2.base ? P2.base.pid === P2.pid : null };
+    if (oldMain && oldMain.cv && oldMain.cv.width && oldMain.page === P2.pid && (!P2.base || !P2.base.cv || P2.base.pid !== P2.pid)) P2.base = { cv: oldMain.cv, pid: P2.pid, rot: oldMain.rot };
     P2.s = mv.s; P2.tx = mv.tx; P2.ty = mv.ty; S.view.s = pv.s; S.view.tx = pv.tx; S.view.ty = pv.ty; viewChanged();
     const want = !was; if (!!S.swapSides !== want) splitSwap(); /* the document you tapped is edited where it already was */
-    render2(); changed2(); syncP2(); } finally { SW.quiet = false; busy(null); }
+    changed2(); syncP2(); } finally { SW.quiet = false; busy(null); }
   if (tool && tool !== S.tool && tool !== 'symbol') { try { setTool(tool); } catch (e) {} }
   toast('Editing ' + (S.fileName || 'this document'), 1400); };
-Object.assign(RDX, { SPLIT86, SW });
+function cloneCv86(src) { try { const c = document.createElement('canvas'); c.width = src.width; c.height = src.height; c.getContext('2d').drawImage(src, 0, 0); return c; } catch (e) { return null; } }
+Object.assign(RDX, { SPLIT86, SW, P2s: () => P2 });
 
 /* ---------- SYMLIB86 (iPad edition): the construction symbol library ----------
    V85 has a 'symbol' markup (a box item drawn as vector paths in the stroke color; resizable by its corners, rotatable,
@@ -9752,8 +9760,12 @@ Object.assign(RDX, { EDTX86, unreadable86, editAllText86: () => editAllText(), d
    under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
 const RELNOTES86 = true;
 const RELNOTES = [
+  { v: '86.61', date: 'Nov 17, 2026', items: [
+    'Side by side: the side you switch away from keeps its picture while the new one draws — no blank page any more. Switching also edits the page that was showing on that side.',
+    'This card now shows only the newest update; “All notes” lists the earlier ones.' ] },
   { v: '86.55', date: 'Nov 17, 2026', items: [
-    'Side by side: switching which side you edit is quiet now — no overlay, no rebuild, both views and the tool in hand stay as they were.',
+    'Side by side: switching which side you edit is quiet — no overlay, no rebuild, both views and the tool in hand stay as they were.' ] },
+  { v: '86.51', date: 'Nov 17, 2026', items: [
     'Print: Save › Print… prints the sheet or the set, with or without markups. On a computer it opens the print dialog directly; on the iPad it hands the PDF to the share sheet, where Print is one of the options.',
     'Save on a computer: Save writes over the document’s own file once you have chosen where it lives (Save as… picks the folder). Open keeps that connection too. On the iPad saving still goes through Files or the share sheet.',
     'Links to a sheet can carry a view: after picking the sheet, drag a box on it; tapping the link lands zoomed to that box. Back returns as before.',
@@ -9761,8 +9773,7 @@ const RELNOTES = [
     'Keyboard: Alt+Z fits text boxes to their text; Ctrl-drag (Cmd on a Mac) drags away a copy; Shift while moving ignores the magnet, smart guides and grid.',
     '“Make the text editable” leaves CAD text with no readable letters alone instead of covering it with blank boxes, and deleting an edited text box removes its white cover too.',
     'Files: drag documents and folders onto folders or onto the path above the cards (hold to lift on touch); the … menu of a card at the bottom of the window stays on screen.',
-    'Blueprint and the other drawing looks are reachable from More and on pages without markups; Sharpen scanned pages (Light/Strong) helps soft vendor sheets.',
-    'This What’s new card.' ] },
+    'Blueprint and the other drawing looks are reachable from More and on pages without markups; Sharpen scanned pages (Light/Strong) helps soft vendor sheets.' ] },
   { v: '86.33', date: 'Nov 16, 2026', items: [
     'Your Redline account: sign in with email and password (Settings › Redline account) and documents, markups, page names, folders and settings follow you between the iPad and the computer. PDFs are kept in the account by default; turn that off to sync markups only.',
     'A background or accent chosen in Settings now wins over the festive look.' ] },
@@ -9771,11 +9782,11 @@ const RELNOTES = [
     'Bring in a whole folder of PDFs (subfolders become folders); on the iPad as a ZIP.' ] }];
 const buildLabel86 = () => { try { return (typeof BUILD === 'string' ? BUILD : String(BUILD || '')).split('·')[0].trim(); } catch (e) { return ''; } };
 const relCmp = (a, b) => { const pa = a.split('.').map(Number), pb = b.split('.').map(Number); for (let i = 0; i < Math.max(pa.length, pb.length); i++) { const d = (pa[i] || 0) - (pb[i] || 0); if (d) return d; } return 0; };
-function relNotesDialog86(sinceV) { const list = sinceV ? RELNOTES.filter(n => relCmp(n.v, sinceV) > 0) : RELNOTES; const show = list.length ? list : RELNOTES.slice(0, 1);
+function relNotesDialog86(sinceV) { const show = RELNOTES.slice(0, 1); /* the newest update only; All notes lists the rest */
   const md = modal(`<h3>What’s new in Redline</h3><p class="muted" style="margin:0 0 8px">Build ${buildLabel86() || ''} · ${show.length === 1 ? show[0].date : show[show.length - 1].date + ' – ' + show[0].date}</p><div id="relBody" style="max-height:56vh;overflow:auto;display:grid;gap:12px"></div><div class="acts"><button class="btn line" id="relAll">All notes</button><span class="grow"></span><button class="btn solid" id="relOk">Got it</button></div>`), body = md.querySelector('#relBody');
   const draw = (arr) => { body.innerHTML = ''; for (const n of arr) { const sec = document.createElement('div'); const h = document.createElement('div'); h.style.cssText = 'font-weight:700;font-size:14px;margin-bottom:4px'; h.textContent = n.v + ' · ' + n.date; const ul = document.createElement('ul'); ul.style.cssText = 'margin:0;padding-left:18px;display:grid;gap:5px;font-size:14px;line-height:1.4'; for (const t of n.items) { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); } sec.append(h, ul); body.appendChild(sec); } };
   draw(show); md.querySelector('#relAll').onclick = () => { draw(RELNOTES); md.querySelector('#relAll').hidden = true; }; md.querySelector('#relOk').onclick = () => { store.set('seenRel86', buildLabel86()); md.close(); }; return md; }
-function relNotesMaybe86() { if (!RELNOTES86 || /[?&]nohome\b/.test(location.search)) return; /* the test harness opens with ?nohome */ const now = buildLabel86(); if (!now) return; const seen = store.get('seenRel86', ''); if (seen === now) return; if (!seen) { /* first run with notes: show only the latest entry */ if (document.querySelector('.scrim')) { setTimeout(relNotesMaybe86, 4000); return; } relNotesDialog86(RELNOTES[1] ? RELNOTES[1].v : ''); return; } if (document.querySelector('.scrim')) { setTimeout(relNotesMaybe86, 4000); return; } if (!RELNOTES.some(n => relCmp(n.v, seen) > 0)) { store.set('seenRel86', now); return; } /* a build with no new note: nothing to show */ relNotesDialog86(seen); }
+function relNotesMaybe86() { if (!RELNOTES86 || /[?&]nohome\b/.test(location.search)) return; /* the test harness opens with ?nohome */ const now = buildLabel86(); if (!now) return; const seen = store.get('seenRel86', ''); if (seen === now) return; if (!seen) { /* first run with notes: show only the latest entry */ if (document.querySelector('.scrim')) { setTimeout(relNotesMaybe86, 4000); return; } relNotesDialog86(''); return; } if (document.querySelector('.scrim')) { setTimeout(relNotesMaybe86, 4000); return; } if (!RELNOTES.some(n => relCmp(n.v, seen) > 0)) { store.set('seenRel86', now); return; } /* a build with no new note: nothing to show */ relNotesDialog86(seen); }
 setTimeout(relNotesMaybe86, 2600);
 const extraItemsR86 = extraItems86; extraItems86 = function (where) { const r = extraItemsR86.apply(this, arguments) || []; if (!RELNOTES86 || where !== 'doc') return r; return [...r, { label: 'What’s new in Redline', note: 'build ' + buildLabel86(), icon: 'help', fn: () => relNotesDialog86('') }]; };
 HELP.push(['What’s new', ['After an update, a card lists what changed since the build you last used. See it again any time: ⋯ More › What’s new in Redline.']]);

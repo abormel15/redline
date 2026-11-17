@@ -182,3 +182,8 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   document leaving the editable side gets its parsed PDF back from pdfWarm before p2OpenDoc (it was re-parsed from
   IndexedDB on every switch: ~1.3 s), both views and the current tool are kept, one short toast. Measured in the rig on the
   72-page stand-in: ~0.8 s → mostly the big sheet's first render; small documents ~0.2 s.
+- SPLIT86 v3 — no blank side while switching: afterLoadExtras is skipped for the split part during the swap (it blanked the
+  second view and rendered a stray page), each side is seeded with the other side's rendered base canvas (the old main base
+  goes to P2.base; a clone of the old P2 base becomes S.base) until the real renders land; the switch edits the page that
+  was showing in the second view (goPage if the saved page differs). Test t135.js counts blank frames per side (≤2).
+  RELNOTES86: the card shows only the newest entry; All notes lists the rest.

@@ -4,8 +4,12 @@
    under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
 const RELNOTES86 = true;
 const RELNOTES = [
+  { v: '86.61', date: 'Nov 17, 2026', items: [
+    'Side by side: the side you switch away from keeps its picture while the new one draws — no blank page any more. Switching also edits the page that was showing on that side.',
+    'This card now shows only the newest update; “All notes” lists the earlier ones.' ] },
   { v: '86.55', date: 'Nov 17, 2026', items: [
-    'Side by side: switching which side you edit is quiet now — no overlay, no rebuild, both views and the tool in hand stay as they were.',
+    'Side by side: switching which side you edit is quiet — no overlay, no rebuild, both views and the tool in hand stay as they were.' ] },
+  { v: '86.51', date: 'Nov 17, 2026', items: [
     'Print: Save › Print… prints the sheet or the set, with or without markups. On a computer it opens the print dialog directly; on the iPad it hands the PDF to the share sheet, where Print is one of the options.',
     'Save on a computer: Save writes over the document’s own file once you have chosen where it lives (Save as… picks the folder). Open keeps that connection too. On the iPad saving still goes through Files or the share sheet.',
     'Links to a sheet can carry a view: after picking the sheet, drag a box on it; tapping the link lands zoomed to that box. Back returns as before.',
@@ -13,8 +17,7 @@ const RELNOTES = [
     'Keyboard: Alt+Z fits text boxes to their text; Ctrl-drag (Cmd on a Mac) drags away a copy; Shift while moving ignores the magnet, smart guides and grid.',
     '“Make the text editable” leaves CAD text with no readable letters alone instead of covering it with blank boxes, and deleting an edited text box removes its white cover too.',
     'Files: drag documents and folders onto folders or onto the path above the cards (hold to lift on touch); the … menu of a card at the bottom of the window stays on screen.',
-    'Blueprint and the other drawing looks are reachable from More and on pages without markups; Sharpen scanned pages (Light/Strong) helps soft vendor sheets.',
-    'This What’s new card.' ] },
+    'Blueprint and the other drawing looks are reachable from More and on pages without markups; Sharpen scanned pages (Light/Strong) helps soft vendor sheets.' ] },
   { v: '86.33', date: 'Nov 16, 2026', items: [
     'Your Redline account: sign in with email and password (Settings › Redline account) and documents, markups, page names, folders and settings follow you between the iPad and the computer. PDFs are kept in the account by default; turn that off to sync markups only.',
     'A background or accent chosen in Settings now wins over the festive look.' ] },
@@ -23,11 +26,11 @@ const RELNOTES = [
     'Bring in a whole folder of PDFs (subfolders become folders); on the iPad as a ZIP.' ] }];
 const buildLabel86 = () => { try { return (typeof BUILD === 'string' ? BUILD : String(BUILD || '')).split('·')[0].trim(); } catch (e) { return ''; } };
 const relCmp = (a, b) => { const pa = a.split('.').map(Number), pb = b.split('.').map(Number); for (let i = 0; i < Math.max(pa.length, pb.length); i++) { const d = (pa[i] || 0) - (pb[i] || 0); if (d) return d; } return 0; };
-function relNotesDialog86(sinceV) { const list = sinceV ? RELNOTES.filter(n => relCmp(n.v, sinceV) > 0) : RELNOTES; const show = list.length ? list : RELNOTES.slice(0, 1);
+function relNotesDialog86(sinceV) { const show = RELNOTES.slice(0, 1); /* the newest update only; All notes lists the rest */
   const md = modal(`<h3>What’s new in Redline</h3><p class="muted" style="margin:0 0 8px">Build ${buildLabel86() || ''} · ${show.length === 1 ? show[0].date : show[show.length - 1].date + ' – ' + show[0].date}</p><div id="relBody" style="max-height:56vh;overflow:auto;display:grid;gap:12px"></div><div class="acts"><button class="btn line" id="relAll">All notes</button><span class="grow"></span><button class="btn solid" id="relOk">Got it</button></div>`), body = md.querySelector('#relBody');
   const draw = (arr) => { body.innerHTML = ''; for (const n of arr) { const sec = document.createElement('div'); const h = document.createElement('div'); h.style.cssText = 'font-weight:700;font-size:14px;margin-bottom:4px'; h.textContent = n.v + ' · ' + n.date; const ul = document.createElement('ul'); ul.style.cssText = 'margin:0;padding-left:18px;display:grid;gap:5px;font-size:14px;line-height:1.4'; for (const t of n.items) { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); } sec.append(h, ul); body.appendChild(sec); } };
   draw(show); md.querySelector('#relAll').onclick = () => { draw(RELNOTES); md.querySelector('#relAll').hidden = true; }; md.querySelector('#relOk').onclick = () => { store.set('seenRel86', buildLabel86()); md.close(); }; return md; }
-function relNotesMaybe86() { if (!RELNOTES86 || /[?&]nohome\b/.test(location.search)) return; /* the test harness opens with ?nohome */ const now = buildLabel86(); if (!now) return; const seen = store.get('seenRel86', ''); if (seen === now) return; if (!seen) { /* first run with notes: show only the latest entry */ if (document.querySelector('.scrim')) { setTimeout(relNotesMaybe86, 4000); return; } relNotesDialog86(RELNOTES[1] ? RELNOTES[1].v : ''); return; } if (document.querySelector('.scrim')) { setTimeout(relNotesMaybe86, 4000); return; } if (!RELNOTES.some(n => relCmp(n.v, seen) > 0)) { store.set('seenRel86', now); return; } /* a build with no new note: nothing to show */ relNotesDialog86(seen); }
+function relNotesMaybe86() { if (!RELNOTES86 || /[?&]nohome\b/.test(location.search)) return; /* the test harness opens with ?nohome */ const now = buildLabel86(); if (!now) return; const seen = store.get('seenRel86', ''); if (seen === now) return; if (!seen) { /* first run with notes: show only the latest entry */ if (document.querySelector('.scrim')) { setTimeout(relNotesMaybe86, 4000); return; } relNotesDialog86(''); return; } if (document.querySelector('.scrim')) { setTimeout(relNotesMaybe86, 4000); return; } if (!RELNOTES.some(n => relCmp(n.v, seen) > 0)) { store.set('seenRel86', now); return; } /* a build with no new note: nothing to show */ relNotesDialog86(seen); }
 setTimeout(relNotesMaybe86, 2600);
 const extraItemsR86 = extraItems86; extraItems86 = function (where) { const r = extraItemsR86.apply(this, arguments) || []; if (!RELNOTES86 || where !== 'doc') return r; return [...r, { label: 'What’s new in Redline', note: 'build ' + buildLabel86(), icon: 'help', fn: () => relNotesDialog86('') }]; };
 HELP.push(['What’s new', ['After an update, a card lists what changed since the build you last used. See it again any time: ⋯ More › What’s new in Redline.']]);
