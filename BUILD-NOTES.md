@@ -201,3 +201,17 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   text field here / Add a checkbox here / Remove this field. Fixture fx/form.pdf (reportlab), test t136.js (detection,
   typing, Tab, checkbox, My details, add/remove, reopen, saved PDF has ≥16 real fields with values via pypdf, flattened
   text via pdftotext). Scans (pictures of forms) are not detected yet — the dialog says so and points to Add a field.
+
+86.67 — GUIDE86 (parts/app97.js, guide/): companion guide for the iPad edition at <app>/guide/ (abormel15.github.io/
+  redline/guide/), same shape as the "Redline Desk Training" artifact (picture index, one card per task with a clip and
+  numbered gesture steps, search, "I tried it" progress in localStorage rdGuide86Tried, Listen, keyboard card, release
+  notes). guide/build_guide.py generates guide/index.html from its CARDS table + RELNOTES in parts/app92.js (build.py runs
+  it and copies guide/ into the output, build_guide.py excluded), so a new note shows up in the guide on the next build; a
+  new feature gets a card in CARDS and, when a clip helps, a scenario in markup/rec.js (`VP=air PORT=8766 node rec.js
+  <name>` → guide/clips/<name>.gif + .jpg, serve.sh + fakesb.js running). The app opens it in an in-app overlay (iframe,
+  Close / Open in a tab, Escape) from ⋯ More › Guide to the iPad edition, Files › More (patch next to Help and tips), a
+  Guide button on the What's new card (goes to #notes) and a Help row. sw.js: pages other than the app (guide/) are cached
+  under their own key — before, a visit to guide/ overwrote the cached app page ('index.html'), which would have shown the
+  guide instead of the app offline. Tests: t137.js (page served with cards/clips/current note, the three entry points,
+  overlay at #symbols, Escape/Close, Guide button → #notes); t134 pinned to the 86.67 note. Not tested: the overlay on a
+  real iPad home-screen app (iframe on the same origin, no reason it differs), Listen voices on iPadOS.

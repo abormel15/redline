@@ -3796,7 +3796,7 @@ function initFiles() {
   $('flBack').onclick = hideFiles; $('flNew').onclick = newDialog;
   $('flSelect').onclick = () => { S.filesSel = S.filesSel ? null : new Set(); renderFiles(); }; $('flCancel').onclick = () => { S.filesSel = null; renderFiles(); }; $('flMove').onclick = () => { if (S.filesSel && S.filesSel.size) moveDialog([...S.filesSel]); }; $('flMerge').onclick = () => { const ids = [...(S.filesSel || [])].filter(k => k[0] === 'd').map(k => k.slice(2)); if (ids.length < 2) return toast('Select two or more documents, then Merge. They are joined in the order shown.'); mergeDocs(ids); }; $('flDelete').onclick = () => { if (S.filesSel && S.filesSel.size) deleteKeys([...S.filesSel]); };
   $('flSort').onclick = () => { store.set('filesSort', store.get('filesSort', 'date') === 'name' ? 'date' : 'name'); renderFiles(); };
-  $('flMore').onclick = () => menu($('flMore'), [...(CL.status === 'none' ? (window.__rdSignInItems86 ? window.__rdSignInItems86() : []) : [{ label: CL.on ? 'Stop keeping documents in my Redline account' : 'Keep documents in my Redline account', icon: 'backup', fn: async () => { if (CL.on) await cloudDisable(); else await cloudEnable(); renderFiles(); } }, '-']), ...(CO.status === 'ask' ? [{ label: 'Look for documents shared with you', icon: 'people', fn: async () => { if (await coAsk()) { renderFiles(); toast(coAway().length ? 'Shared documents are listed below your own.' : 'Connected. Nothing is shared with you yet.', 4000); } } }, '-'] : []), { label: 'Back up everything', icon: 'backup', fn: backupAll }, { label: 'Restore from a backup', icon: 'open', fn: () => $('fRestore').click() }, { label: 'Bring in a folder', note: 'subfolders become folders', icon: 'folder', fn: bringInFolder }, '-', { label: 'Find a feature\u2026', icon: 'search', fn: finderDialog }, { label: 'Settings', icon: 'more', fn: settingsDialog }, { label: 'Put this app on your Home Screen', icon: 'plus', fn: installHelp }, { label: 'Help and tips', icon: 'help', fn: helpDialog }, { label: 'Show the quick tour', icon: 'help', fn: () => startTour('home', true) }]);
+  $('flMore').onclick = () => menu($('flMore'), [...(CL.status === 'none' ? (window.__rdSignInItems86 ? window.__rdSignInItems86() : []) : [{ label: CL.on ? 'Stop keeping documents in my Redline account' : 'Keep documents in my Redline account', icon: 'backup', fn: async () => { if (CL.on) await cloudDisable(); else await cloudEnable(); renderFiles(); } }, '-']), ...(CO.status === 'ask' ? [{ label: 'Look for documents shared with you', icon: 'people', fn: async () => { if (await coAsk()) { renderFiles(); toast(coAway().length ? 'Shared documents are listed below your own.' : 'Connected. Nothing is shared with you yet.', 4000); } } }, '-'] : []), { label: 'Back up everything', icon: 'backup', fn: backupAll }, { label: 'Restore from a backup', icon: 'open', fn: () => $('fRestore').click() }, { label: 'Bring in a folder', note: 'subfolders become folders', icon: 'folder', fn: bringInFolder }, '-', { label: 'Find a feature\u2026', icon: 'search', fn: finderDialog }, { label: 'Settings', icon: 'more', fn: settingsDialog }, { label: 'Put this app on your Home Screen', icon: 'plus', fn: installHelp }, { label: 'Help and tips', icon: 'help', fn: helpDialog }, ...(window.__rdGuideItems86 ? window.__rdGuideItems86() : []), { label: 'Show the quick tour', icon: 'help', fn: () => startTour('home', true) }]);
   const ff = $('filesFind'); ff.addEventListener('keydown', e => e.stopPropagation()); ff.oninput = () => { S.filesFind = ff.value; renderFiles(); };
   $('fImport').onchange = e => { const fs = [...e.target.files]; e.target.value = ''; if (!fs.length) return; if (fs.length === 1) { const f = S.curFolder; hideFiles(); S.newFolder = f; openFile(fs[0], false); } else importDocs(fs); };
   { const bz = $('busy'); document.body.appendChild(bz); bz.style.position = 'fixed'; bz.style.zIndex = '50'; const bo = $('bOpen'); bo.title = 'Files: all your documents and folders'; const sp = bo.querySelector('span'); if (sp) { sp.textContent = 'Files'; sp.classList.remove('hide-s'); } }
@@ -8529,7 +8529,7 @@ try { HELP.push(['Choosing what goes in a report', ['Every report that lists mar
 Object.assign(RDX, { reportChooser, reportDialog, runReport, RC_FOR, rcKind, RF: () => RF_ONLY });
 
 /* ---------- V81: hold-to-straighten sign, and which version is running ---------- */
-const BUILD = '86.66 · Nov 17 2026 · iPad edition';
+const BUILD = '86.67 · Nov 17 2026 · iPad edition';
 try { const st = document.createElement('style'); st.textContent = `#snapCue{position:fixed;z-index:60;pointer-events:none;padding:6px 12px;border-radius:999px;background:#17212b;color:#fff;font:600 14px var(--ui,system-ui);box-shadow:0 2px 10px #0004;opacity:0;transform:scale(.6);transition:opacity .12s,transform .12s;white-space:nowrap}
 #snapCue.on{opacity:1;transform:scale(1);animation:snapPop .32s ease-out}@keyframes snapPop{0%{transform:scale(.6)}55%{transform:scale(1.15)}100%{transform:scale(1)}}`; document.head.appendChild(st); } catch (e) {}
 // the sign never outlives the stroke, whatever ends it
@@ -9760,6 +9760,8 @@ Object.assign(RDX, { EDTX86, unreadable86, editAllText86: () => editAllText(), d
    under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
 const RELNOTES86 = true;
 const RELNOTES = [
+  { v: '86.67', date: 'Nov 17, 2026', items: [
+    'A guide to the iPad edition: short clips and numbered steps for the account, drag and drop, sheet sets, symbols, forms, printing, side by side, links with a view and the looks. ⋯ More › Guide to the iPad edition, the Guide button on this card, or /guide/ next to the app.' ] },
   { v: '86.66', date: 'Nov 17, 2026', items: [
     'Fill out any form: ⋯ More › Fill out this form turns the boxes, underlines, ____ runs and checkbox squares of a flat PDF (401k, benefits, permit forms) into fields — tap to type or tick, Tab to the next. Save PDF makes them real fields that Acrobat can fill too; a flattened save prints the answers in.',
     'Settings › My details for forms: name, address, phone, email… fill matching fields with one tap; Date fields get today’s date. Hold on the page to add a field by hand or remove one.' ] },
@@ -9999,6 +10001,41 @@ const settingsDialogFm86 = settingsDialog; settingsDialog = function () { const 
     const note = document.createElement('div'); note.className = 'muted'; note.style.cssText = 'font-size:12.5px;grid-column:1/-1'; note.textContent = 'When a form field is labelled Name, Address, Phone, Email… tapping it fills this in (type to replace). Date fields get today’s date. Nothing here is required.'; box.appendChild(note); st.before(h); st.before(box); } catch (e) { console.warn(e); } return r; };
 HELP.push(['Filling out forms', ['⋯ More › Fill out this form (or hold on the page): the boxes, underlines, ____ runs and little squares of the form become fields with a light blue tint — the same as a PDF that already has real fields. Tap a field to type or tick; Tab or Enter moves to the next; Shift+Tab goes back. Fields labelled Name, Address, Phone, Email fill from Settings › My details with one tap; Date fields get today’s date. Hold on the page to add a text field or checkbox where none was found, or to remove one. Save PDF keeps every field fillable (in Acrobat too); Save flattened PDF prints the answers in.']]);
 Object.assign(RDX, { FORM86, detectFields86, formFill86, addField86, removeField86, fieldsInOrder86, fieldStep86, openField86, meSuggest86, detKey });
+
+/* ---------- GUIDE86 (iPad edition): the companion guide (guide/index.html next to the app) ----------
+   ⋯ More › Guide to the iPad edition, a Guide button on the What's new card, Files › More when signed out, and a row
+   in Help open the guide in an in-app overlay (an iframe, so the home-screen app is not left for Safari), with
+   "Open in a tab" for a full window. guide/index.html is built by guide/build_guide.py; its release-notes section is
+   generated from RELNOTES, so each build that adds a note also refreshes the guide. */
+const GUIDE86 = true;
+const guideUrl86 = (hash) => new URL('guide/' + (hash ? '#' + hash : ''), location.href.replace(/[?#].*$/, '')).href;
+function guideOpen86(hash) {
+  if (!GUIDE86) return;
+  const old = document.getElementById('guideOv86'); if (old) old.remove();
+  const ov = document.createElement('div'); ov.id = 'guideOv86'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'Guide to the iPad edition');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:var(--bg,#f3f6f9);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)';
+  ov.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line,#dbe2ea);background:var(--panel,#fff);flex:none">
+      <strong style="flex:1;font-size:15px">Guide to the iPad edition</strong>
+      <button class="btn line" id="guideTab86" type="button">Open in a tab</button>
+      <button class="btn solid" id="guideClose86" type="button">Close</button></div>
+    <iframe id="guideFr86" title="Guide" style="flex:1;border:0;width:100%;background:#fff"></iframe>`;
+  document.body.appendChild(ov);
+  const fr = ov.querySelector('#guideFr86'); fr.src = guideUrl86(hash);
+  const close = () => { ov.remove(); document.removeEventListener('keydown', onKey, true); };
+  const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+  document.addEventListener('keydown', onKey, true);
+  ov.querySelector('#guideClose86').onclick = close;
+  ov.querySelector('#guideTab86').onclick = () => { try { window.open(guideUrl86(hash), '_blank', 'noopener'); } catch (e) {} };
+  return ov;
+}
+/* ⋯ More (document open) */
+const extraItemsG86 = extraItems86; extraItems86 = function (where) { const r = extraItemsG86.apply(this, arguments) || []; if (!GUIDE86 || where !== 'doc') return r; return [...r, { label: 'Guide to the iPad edition', note: 'clips and steps for everything new', icon: 'help', fn: () => guideOpen86('') }]; };
+/* Files › More: a Guide row next to Help and tips (patches.py GUIDE86 calls this) */
+window.__rdGuideItems86 = () => GUIDE86 ? [{ label: 'Guide to the iPad edition', note: 'clips and steps for everything new', icon: 'help', fn: () => guideOpen86('') }] : [];
+/* What's new card: a Guide button next to All notes */
+const relNotesDialogG86 = relNotesDialog86; relNotesDialog86 = function () { const md = relNotesDialogG86.apply(this, arguments); try { const all = md.querySelector('#relAll'); if (all && GUIDE86) { const b = document.createElement('button'); b.className = 'btn line'; b.id = 'relGuide86'; b.type = 'button'; b.textContent = 'Guide'; b.onclick = () => { guideOpen86('notes'); }; all.after(b); } } catch (e) {} return md; };
+HELP.push(['Guide to the iPad edition', ['⋯ More › Guide to the iPad edition opens a page of short clips and numbered steps for everything this edition adds: the account, symbols, forms, printing, side by side, sheet sets. It is also at the same web address as the app, under /guide/.']]);
+Object.assign(RDX, { GUIDE86, guideOpen86, guideUrl86, relNotesDialog86 }); /* the wrapped dialog, so callers through RDX get the Guide button too */
 
 /* ---------- wiring ---------- */
 function nameDialog() { const m = modal(`<h3>Your name on markups</h3><p>Saved with each markup and shown in the markup list and on dated stamps.</p><label>Name<input type="text" id="auName" maxlength="60" autocomplete="name"></label>

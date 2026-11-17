@@ -3,7 +3,7 @@
    Source of truth for app logic: src85/index.html (byte-for-byte what the Claude artifact serves).
    This script only: rewrites the document head (PWA tags), switches on the existing STANDALONE edition,
    relabels the build, appends the theme stylesheet and a small PWA bootstrap. No app code is edited."""
-import re, shutil, pathlib, hashlib, sys, datetime
+import subprocess, sys, re, shutil, pathlib, hashlib, sys, datetime
 SRC = pathlib.Path('/home/claude/src85'); OUT = pathlib.Path('/home/claude/rd'); HERE = pathlib.Path(__file__).parent
 SERIAL = HERE.joinpath('serial.txt'); n = int(SERIAL.read_text() or '0') + 1 if SERIAL.exists() else 1; SERIAL.write_text(str(n))
 LABEL = sys.argv[1] if len(sys.argv) > 1 else f'86.{n} · {datetime.date.today().strftime("%b %d %Y").replace(" 0", " ")} · iPad edition'
@@ -84,6 +84,10 @@ OUT.joinpath('index.html').write_text(out)
 if OUT.joinpath('lib').exists(): shutil.rmtree(OUT / 'lib')
 shutil.copytree(SRC / 'lib', OUT / 'lib')
 shutil.copy(HERE / 'manifest.webmanifest', OUT / 'manifest.webmanifest')
+# the companion guide (guide/index.html is generated from guide/build_guide.py, release notes from parts/app92.js)
+subprocess.run([sys.executable, str(HERE / 'guide' / 'build_guide.py')], check=True)
+if OUT.joinpath('guide').exists(): shutil.rmtree(OUT / 'guide')
+shutil.copytree(HERE / 'guide', OUT / 'guide', ignore=shutil.ignore_patterns('build_guide.py', '__pycache__'))
 # service worker, versioned by the content it caches
 h = hashlib.sha256(); h.update(out.encode()); h.update(theme.encode())
 for f in sorted((OUT / 'lib').rglob('*')):

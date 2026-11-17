@@ -1,7 +1,7 @@
 /* Redline Desk — offline cache. The app shell and the PDF libraries are stored on install; the page itself is fetched
    from the network first so updates arrive, with the cached copy used when offline. Fonts and anything else fetched
    while online are kept for later. Version is replaced by the build. */
-const VERSION = '8dc185103c';
+const VERSION = '8281545a3e';
 const SHELL = 'rd-shell-' + VERSION, RUNTIME = 'rd-runtime';
 const PRECACHE = ['./', 'index.html', 'manifest.webmanifest', 'lib/pdf.min.js', 'lib/pdf-lib.min.js', 'lib/pdf.worker.min.js',
   'lib/standard_fonts/LiberationSans-Regular.ttf', 'lib/standard_fonts/LiberationSans-Bold.ttf', 'lib/standard_fonts/LiberationSans-Italic.ttf', 'lib/standard_fonts/LiberationSans-BoldItalic.ttf',
@@ -15,9 +15,12 @@ self.addEventListener('fetch', e => {
   // only this site is cached; the account (Supabase) and anything else live go straight to the network
   if (url.origin !== location.origin) return;
   if (url.origin === location.origin && (req.mode === 'navigate' || /index\.html$/.test(url.pathname) || url.pathname.endsWith('/'))) {
-    // the page: network first, cache fallback
-    e.respondWith(fetch(req, { cache: 'no-cache' }).then(r => { const copy = r.clone(); caches.open(SHELL).then(c => c.put('index.html', copy)); return r; })
-      .catch(() => caches.match('index.html', { ignoreSearch: true })));
+    // pages: network first, cache fallback. The app itself is kept under one key ('index.html') whatever the query;
+    // other pages next to it (guide/) are kept under their own address, so they never stand in for the app offline.
+    const root = new URL(self.registration.scope).pathname, isApp = url.pathname === root || url.pathname === root + 'index.html';
+    const key = isApp ? 'index.html' : url.pathname.replace(/\/$/, '/index.html');
+    e.respondWith(fetch(req, { cache: 'no-cache' }).then(r => { const copy = r.clone(); caches.open(SHELL).then(c => c.put(key, copy)); return r; })
+      .catch(() => caches.match(key, { ignoreSearch: true })));
     return;
   }
   // everything else: cache first, then network (stored for next time)

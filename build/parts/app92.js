@@ -4,6 +4,8 @@
    under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
 const RELNOTES86 = true;
 const RELNOTES = [
+  { v: '86.67', date: 'Nov 17, 2026', items: [
+    'A guide to the iPad edition: short clips and numbered steps for the account, drag and drop, sheet sets, symbols, forms, printing, side by side, links with a view and the looks. ⋯ More › Guide to the iPad edition, the Guide button on this card, or /guide/ next to the app.' ] },
   { v: '86.66', date: 'Nov 17, 2026', items: [
     'Fill out any form: ⋯ More › Fill out this form turns the boxes, underlines, ____ runs and checkbox squares of a flat PDF (401k, benefits, permit forms) into fields — tap to type or tick, Tab to the next. Save PDF makes them real fields that Acrobat can fill too; a flattened save prints the answers in.',
     'Settings › My details for forms: name, address, phone, email… fill matching fields with one tap; Date fields get today’s date. Hold on the page to add a field by hand or remove one.' ] },

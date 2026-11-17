@@ -15,9 +15,12 @@ self.addEventListener('fetch', e => {
   // only this site is cached; the account (Supabase) and anything else live go straight to the network
   if (url.origin !== location.origin) return;
   if (url.origin === location.origin && (req.mode === 'navigate' || /index\.html$/.test(url.pathname) || url.pathname.endsWith('/'))) {
-    // the page: network first, cache fallback
-    e.respondWith(fetch(req, { cache: 'no-cache' }).then(r => { const copy = r.clone(); caches.open(SHELL).then(c => c.put('index.html', copy)); return r; })
-      .catch(() => caches.match('index.html', { ignoreSearch: true })));
+    // pages: network first, cache fallback. The app itself is kept under one key ('index.html') whatever the query;
+    // other pages next to it (guide/) are kept under their own address, so they never stand in for the app offline.
+    const root = new URL(self.registration.scope).pathname, isApp = url.pathname === root || url.pathname === root + 'index.html';
+    const key = isApp ? 'index.html' : url.pathname.replace(/\/$/, '/index.html');
+    e.respondWith(fetch(req, { cache: 'no-cache' }).then(r => { const copy = r.clone(); caches.open(SHELL).then(c => c.put(key, copy)); return r; })
+      .catch(() => caches.match(key, { ignoreSearch: true })));
     return;
   }
   // everything else: cache first, then network (stored for next time)
