@@ -4,6 +4,9 @@
    under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
 const RELNOTES86 = true;
 const RELNOTES = [
+  { v: '86.66', date: 'Nov 17, 2026', items: [
+    'Fill out any form: ⋯ More › Fill out this form turns the boxes, underlines, ____ runs and checkbox squares of a flat PDF (401k, benefits, permit forms) into fields — tap to type or tick, Tab to the next. Save PDF makes them real fields that Acrobat can fill too; a flattened save prints the answers in.',
+    'Settings › My details for forms: name, address, phone, email… fill matching fields with one tap; Date fields get today’s date. Hold on the page to add a field by hand or remove one.' ] },
   { v: '86.61', date: 'Nov 17, 2026', items: [
     'Side by side: the side you switch away from keeps its picture while the new one draws — no blank page any more. Switching also edits the page that was showing on that side.',
     'This card now shows only the newest update; “All notes” lists the earlier ones.' ] },

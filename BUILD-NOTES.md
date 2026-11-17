@@ -187,3 +187,17 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   goes to P2.base; a clone of the old P2 base becomes S.base) until the real renders land; the switch edits the page that
   was showing in the second view (goPage if the saved page differs). Test t135.js counts blank frames per side (≤2).
   RELNOTES86: the card shows only the newest entry; All notes lists the rest.
+- `app96.js` FORM86 — fill out flat forms. detectFields86(pg) reads the page's operator list (rectangles, horizontal segments,
+  thin filled rules; fill/stroke colours tracked so dark bars are skipped, frames around ≥2 boxes skipped, boxes with printed
+  text skipped) and the text items (runs of ____, labels to the left/above for names) → text fields (tall → multi-line),
+  checkboxes (6–20 pt squares), underline fields (box 15 pt above the line; table rules excluded). Detected fields live in
+  S.det86[src:n] (saved in docState, restored in readDoc, cleared by resetDocExtras) and are appended to formCache by a
+  pageFields wrapper, so V85's tint/tap/edit path treats them like real fields (det: true, own: false; setField marks them in
+  formOwn so applyForm ignores them). drawFormText wrapper draws their answers (fit-to-box text, ✓ for checks; underline
+  fields sit on the line). applyFormLib wrapper creates real AcroForm fields with pdf-lib at save (text/multiline/checkbox,
+  named rd_<label>_<page>_<n>) so Save PDF is fillable in Acrobat and flattenForm prints them. Editor: Tab / Shift+Tab /
+  Enter step through fields in reading order (scrolls into view); My details (store formMe86, Settings) fills Name/Address/
+  Phone/Email… fields, Date fields get today. Commands: More › Fill out this form; hold on page → Fill out this form / Add a
+  text field here / Add a checkbox here / Remove this field. Fixture fx/form.pdf (reportlab), test t136.js (detection,
+  typing, Tab, checkbox, My details, add/remove, reopen, saved PDF has ≥16 real fields with values via pypdf, flattened
+  text via pdftotext). Scans (pictures of forms) are not detected yet — the dialog says so and points to Add a field.
