@@ -5523,10 +5523,10 @@ async function editAllText() { const pg = cur(); if (!pg) return; const its = aw
 function noTextHelp() { const md = modal(`<h3>No text on this page yet</h3><p>This page is a picture of text, like a scan. Claude can read it first, then you can tap any words to change them.</p><div class="acts"><button class="btn line" id="ntNo">Cancel</button><button class="btn solid" id="ntGo">Read the text</button></div>`); md.querySelector('#ntNo').onclick = md.close; md.querySelector('#ntGo').onclick = () => { md.close(); ocrDialog(); }; }
 
 /* ----- color editing: change the colors of what is selected, and how the drawing itself is shown ----- */
-function colorEditDialog() { const sel = selMarkups().filter(m => editable(m) && !m.cover), scope = sel.length ? sel : S.markups.filter(m => m.page === cur().id && editable(m) && !m.cover); if (!scope.length) return toast('There are no markups to recolor on this page.');
+function colorEditDialog() { const sel = selMarkups().filter(m => editable(m) && !m.cover), scope = sel.length ? sel : S.markups.filter(m => m.page === cur().id && editable(m) && !m.cover); const noMk86 = !scope.length;
   const cols = new Map(); const see = c => { if (c && /^#[0-9a-f]{6}$/i.test(c)) { const k = c.toLowerCase(); cols.set(k, (cols.get(k) || 0) + 1); } }; for (const m of scope) { see(m.style.stroke); if (m.style.fill !== 'same') see(m.style.fill); see(m.style.textColor); }
   const map = new Map(), mode = store.get('pageColor', { mode: 'orig' });
-  const md = modal(`<h3>Change colors</h3><p class="muted" style="margin:0 0 8px">${sel.length ? `${sel.length} selected markup${sel.length === 1 ? '' : 's'}` : 'Every markup on this page'}. Tap a new color for any of them.</p><div id="ceRows" class="cerows"></div>
+  const md = modal(`<h3>Change colors</h3><p class="muted" style="margin:0 0 8px">${sel.length ? `${sel.length} selected markup${sel.length === 1 ? '' : 's'}` : noMk86 ? 'No markups on this page yet' : 'Every markup on this page'}. ${noMk86 ? 'The drawing display below still applies.' : 'Tap a new color for any of them.'}</p><div id="ceRows" class="cerows"></div>
     <div class="prow" style="margin-top:8px"><button class="btn line" id="ceOne">All one color…</button><button class="btn line" id="ceBlk">All black</button><button class="btn line" id="ceGry">All gray</button><button class="btn line" id="ceRst">Start over</button></div>
     <h4 class="cehd">How the drawing itself shows</h4><div class="prow" id="cePg"></div><div id="ceSwap" class="prow" hidden></div><p class="popnote">This changes how the sheet looks here and in snapshots. The saved PDF keeps its original colors.</p>
     <div class="acts"><button class="btn line" id="ceNo">Cancel</button><button class="btn solid" id="ceOk">Apply</button></div>`); md.querySelector('.modal').classList.add('wide');
@@ -8529,7 +8529,7 @@ try { HELP.push(['Choosing what goes in a report', ['Every report that lists mar
 Object.assign(RDX, { reportChooser, reportDialog, runReport, RC_FOR, rcKind, RF: () => RF_ONLY });
 
 /* ---------- V81: hold-to-straighten sign, and which version is running ---------- */
-const BUILD = '86.33 · Nov 16 2026 · iPad edition';
+const BUILD = '86.34 · Nov 16 2026 · iPad edition';
 try { const st = document.createElement('style'); st.textContent = `#snapCue{position:fixed;z-index:60;pointer-events:none;padding:6px 12px;border-radius:999px;background:#17212b;color:#fff;font:600 14px var(--ui,system-ui);box-shadow:0 2px 10px #0004;opacity:0;transform:scale(.6);transition:opacity .12s,transform .12s;white-space:nowrap}
 #snapCue.on{opacity:1;transform:scale(1);animation:snapPop .32s ease-out}@keyframes snapPop{0%{transform:scale(.6)}55%{transform:scale(1.15)}100%{transform:scale(1)}}`; document.head.appendChild(st); } catch (e) {}
 // the sign never outlives the stroke, whatever ends it
@@ -9466,6 +9466,16 @@ const settingsDialogS86 = settingsDialog; settingsDialog = function () { const r
 HELP.push(['Your Redline account: the same work on every device', ['Settings, Redline account, Sign in with your email and password (Create an account the first time: one confirmation email, then no more emails). From then on every markup, page name, folder and setting is kept in your account and follows you to any device you sign in on. The PDFs themselves stay on each device, so nothing large is uploaded.',
   'On a second device, open the same PDF from Files and Redline recognizes it and offers to open it with your markups. A document in Files whose PDF is not on this device yet says “tap to choose its PDF”. Turn on “Also keep the PDFs in the account” in Settings if you would rather have them download by themselves.']]);
 Object.assign(RDX, { SYNC86, SB86, SBS, sbResendPdfs, sbSess, sbSave, sbVerify, sbPassword, sbSignUp, sbRecover, sbSetPassword, setPasswordDialog86, sbSignOut, sbAfterSignIn, signInDialog86, srcResolve86, fp86, matchCloud86, sbPdfsSet, dbShim, assetsShim, CL86: () => CL, openDoc86: id => openDoc(id) });
+
+/* ---------- LOOK86 (iPad edition): the drawing display (Blueprint, Grayscale, Black lines, Faded, Swap a color) in the More menu ----------
+   V85 keeps these in the "Change colors" dialog, reached by holding on the page; with the patch LOOK86 the dialog also opens on
+   a page without markups. This adds a plain entry in More › This document so it is easy to find. Switch: LOOK86. */
+const LOOK86 = true;
+const extraItemsL86 = extraItems86; extraItems86 = function (where) { const r = extraItemsL86.apply(this, arguments) || []; if (!LOOK86 || where !== 'doc' || !S.pages || !S.pages.length) return r;
+  const pm = store.get('pageColor', { mode: 'orig' }), now = { gray: 'grayscale', black: 'black lines', faded: 'faded', blue: 'blueprint', swap: 'color swapped' }[pm && pm.mode] || '';
+  return [{ label: 'How the drawing shows: blueprint, grayscale…', note: now ? 'now: ' + now : '', icon: 'style', fn: colorEditDialog }, ...r]; };
+HELP.push(['Blueprint and other drawing looks', ['More, This document, “How the drawing shows” turns the sheet into a blueprint, grayscale, black lines or faded, or swaps one drawing color for another; it also sits in the Change colors dialog when you hold on the page. It changes how the sheet looks here and in snapshots; the saved PDF keeps its original colors.']]);
+Object.assign(RDX, { LOOK86 });
 
 /* ---------- wiring ---------- */
 function nameDialog() { const m = modal(`<h3>Your name on markups</h3><p>Saved with each markup and shown in the markup list and on dated stamps.</p><label>Name<input type="text" id="auName" maxlength="60" autocomplete="name"></label>

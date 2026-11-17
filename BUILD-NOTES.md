@@ -142,3 +142,7 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
 - SYNC86: "Also keep the PDFs in the account" is now ON by default (the user's call: documents must open on every device
   without choosing the PDF). sbResendPdfs() runs after each connect/sign-in and re-sends sources that were pushed as
   fingerprint-only while the setting was off. Test t130.js (default upload, second device downloads by itself, re-send).
+- LOOK86 — the drawing display (As drawn / Grayscale / Black lines / Faded / Blueprint / Swap a color) was only reachable through
+  "Change colors on this page…" (hold on the page), and that dialog refused to open on a page with no markups, so Blueprint
+  looked gone. Patch: the dialog opens regardless (note "No markups on this page yet"); app85.js adds More › This document ›
+  "How the drawing shows: blueprint, grayscale…" (shows the current look) and a Help entry.
