@@ -139,3 +139,6 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
 - FEST86 fix: a "Background around the pages" or accent the user picked in Settings now wins over the festive palette (the
   look used to paint its own mat/accent over them, so the setting looked dead while Autumn was on); turning the look off
   re-applies the user's own theme/mat/accent.
+- SYNC86: "Also keep the PDFs in the account" is now ON by default (the user's call: documents must open on every device
+  without choosing the PDF). sbResendPdfs() runs after each connect/sign-in and re-sends sources that were pushed as
+  fingerprint-only while the setting was off. Test t130.js (default upload, second device downloads by itself, re-send).
