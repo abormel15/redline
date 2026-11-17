@@ -4,7 +4,8 @@
    under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
 const RELNOTES86 = true;
 const RELNOTES = [
-  { v: '86.51', date: 'Nov 17, 2026', items: [
+  { v: '86.55', date: 'Nov 17, 2026', items: [
+    'Side by side: switching which side you edit is quiet now — no overlay, no rebuild, both views and the tool in hand stay as they were.',
     'Print: Save › Print… prints the sheet or the set, with or without markups. On a computer it opens the print dialog directly; on the iPad it hands the PDF to the share sheet, where Print is one of the options.',
     'Save on a computer: Save writes over the document’s own file once you have chosen where it lives (Save as… picks the folder). Open keeps that connection too. On the iPad saving still goes through Files or the share sheet.',
     'Links to a sheet can carry a view: after picking the sheet, drag a box on it; tapping the link lands zoomed to that box. Back returns as before.',
@@ -12,7 +13,6 @@ const RELNOTES = [
     'Keyboard: Alt+Z fits text boxes to their text; Ctrl-drag (Cmd on a Mac) drags away a copy; Shift while moving ignores the magnet, smart guides and grid.',
     '“Make the text editable” leaves CAD text with no readable letters alone instead of covering it with blank boxes, and deleting an edited text box removes its white cover too.',
     'Files: drag documents and folders onto folders or onto the path above the cards (hold to lift on touch); the … menu of a card at the bottom of the window stays on screen.',
-    'Side by side: the edited document stays on its own side when you switch sides.',
     'Blueprint and the other drawing looks are reachable from More and on pages without markups; Sharpen scanned pages (Light/Strong) helps soft vendor sheets.',
     'This What’s new card.' ] },
   { v: '86.33', date: 'Nov 16, 2026', items: [

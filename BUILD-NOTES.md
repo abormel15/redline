@@ -178,3 +178,7 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   over it, Save as… re-links, everything else asks where; permission requested on the Save button press; tests set
   window.__rdNoFS86 unless they stub the pickers. `app95.js` LINKBOX86 — Link to a sheet… then drag a box on the sheet
   (m.link.box fractions); followLink zooms to it (same doc and other doc). Test t134.js; SAVE_ADJ86 adjusts the Save menu.
+- SPLIT86 v2 — the side switch no longer reloads: busy() and closeSplit() are no-ops during the swap (SW.quiet), the
+  document leaving the editable side gets its parsed PDF back from pdfWarm before p2OpenDoc (it was re-parsed from
+  IndexedDB on every switch: ~1.3 s), both views and the current tool are kept, one short toast. Measured in the rig on the
+  72-page stand-in: ~0.8 s → mostly the big sheet's first render; small documents ~0.2 s.

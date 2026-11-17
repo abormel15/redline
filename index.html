@@ -8529,7 +8529,7 @@ try { HELP.push(['Choosing what goes in a report', ['Every report that lists mar
 Object.assign(RDX, { reportChooser, reportDialog, runReport, RC_FOR, rcKind, RF: () => RF_ONLY });
 
 /* ---------- V81: hold-to-straighten sign, and which version is running ---------- */
-const BUILD = '86.51 · Nov 17 2026 · iPad edition';
+const BUILD = '86.55 · Nov 17 2026 · iPad edition';
 try { const st = document.createElement('style'); st.textContent = `#snapCue{position:fixed;z-index:60;pointer-events:none;padding:6px 12px;border-radius:999px;background:#17212b;color:#fff;font:600 14px var(--ui,system-ui);box-shadow:0 2px 10px #0004;opacity:0;transform:scale(.6);transition:opacity .12s,transform .12s;white-space:nowrap}
 #snapCue.on{opacity:1;transform:scale(1);animation:snapPop .32s ease-out}@keyframes snapPop{0%{transform:scale(.6)}55%{transform:scale(1.15)}100%{transform:scale(1)}}`; document.head.appendChild(st); } catch (e) {}
 // the sign never outlives the stroke, whatever ends it
@@ -9541,18 +9541,29 @@ document.addEventListener('contextmenu', e => { if (DND.lifted) { e.preventDefau
 HELP.push(['Moving documents and folders by dragging', ['In Files, drag a document or folder onto a folder, or onto Projects or a parent folder in the path above the cards. With a mouse just drag; with a finger or the Pencil hold the card until it lifts, then move. Select several first and they move together. A folder cannot be dropped into itself.']]);
 Object.assign(RDX, { DND86, dndMove, dndTargetAt, DND });
 
-/* ---------- SPLIT86 (iPad edition): sides stay put when switching which document is edited ----------
-   V85 p2SwapDocs swaps the two documents between the editable stage and the second view and then *toggles* the swap class so
-   each document stays on its own side. But openDoc → resetDocExtras → closeSplit resets S.swapSides to false first, so the
-   toggle starts from a wrong baseline every other time and the editable document jumps to the other side. Fix: remember the
-   side arrangement before the swap and set it explicitly afterwards. Switch: SPLIT86. */
+/* ---------- SPLIT86 (iPad edition): switching the edited side is quiet and keeps its place ----------
+   Two fixes to V85's p2SwapDocs. (1) The sides no longer flip: openDoc → resetDocExtras → closeSplit reset S.swapSides
+   before the toggle, so every other switch landed the edited document on the wrong side; the arrangement is now set
+   explicitly. (2) No reload feel: the busy overlays ("Opening…", "Opening in the second view…") are suppressed for the
+   swap, the split pane stays up instead of being torn down and rebuilt, the document that leaves the editable side keeps
+   its parsed PDF (it was being re-parsed from IndexedDB every time), both views stay where they were, and the tool in
+   hand stays selected. Switch: SPLIT86. */
 const SPLIT86 = true;
+const SW = { quiet: false };
+const busySw86 = busy; busy = function (msg) { if (SPLIT86 && SW.quiet) return Promise.resolve(); return busySw86.apply(this, arguments); };
+const closeSplitSw86 = closeSplit; closeSplit = function () { if (SPLIT86 && SW.quiet) return; return closeSplitSw86.apply(this, arguments); };
 const p2SwapDocsV85 = p2SwapDocs; p2SwapDocs = async function () { if (!SPLIT86) return p2SwapDocsV85.apply(this, arguments);
-  const other = P2.doc && P2.doc.id, mine = S.docId, pv = { s: P2.s, tx: P2.tx, ty: P2.ty }, mv = { s: S.view.s, tx: S.view.tx, ty: S.view.ty }, was = !!S.swapSides; if (!other || !mine || S.sample) return;
-  await openDoc(other); if (S.docId !== other) return; await p2OpenDoc(mine); if (!S.split) openSplit(); P2.s = mv.s; P2.tx = mv.tx; P2.ty = mv.ty; S.view.s = pv.s; S.view.tx = pv.tx; S.view.ty = pv.ty; viewChanged();
-  const want = !was; if (!!S.swapSides !== want) splitSwap(); /* the document you tapped is edited where it already was */
-  render2(); changed2(); syncP2(); toast('Now editing ' + (S.fileName || 'this document') + ' on this side. Tap the other side to edit that one.', 3000); };
-Object.assign(RDX, { SPLIT86 });
+  const other = P2.doc && P2.doc.id, mine = S.docId, pv = { s: P2.s, tx: P2.tx, ty: P2.ty }, mv = { s: S.view.s, tx: S.view.tx, ty: S.view.ty }, was = !!S.swapSides, tool = S.tool, mySrc = Object.keys(S.sources); if (!other || !mine || S.sample) return;
+  SW.quiet = true; try {
+    SW.t = {}; let t0 = performance.now(); await openDoc(other); SW.t.open = Math.round(performance.now() - t0); if (S.docId !== other) return;
+    t0 = performance.now(); for (const id of mySrc) { if (!S.sources[id] && typeof pdfWarm !== 'undefined' && pdfWarm.has(id)) { S.sources[id] = pdfWarm.get(id); pdfWarm.delete(id); } } /* the document moving to the second view keeps its parsed PDF */
+    await p2OpenDoc(mine); SW.t.p2 = Math.round(performance.now() - t0); if (!S.split) openSplit();
+    P2.s = mv.s; P2.tx = mv.tx; P2.ty = mv.ty; S.view.s = pv.s; S.view.tx = pv.tx; S.view.ty = pv.ty; viewChanged();
+    const want = !was; if (!!S.swapSides !== want) splitSwap(); /* the document you tapped is edited where it already was */
+    render2(); changed2(); syncP2(); } finally { SW.quiet = false; busy(null); }
+  if (tool && tool !== S.tool && tool !== 'symbol') { try { setTool(tool); } catch (e) {} }
+  toast('Editing ' + (S.fileName || 'this document'), 1400); };
+Object.assign(RDX, { SPLIT86, SW });
 
 /* ---------- SYMLIB86 (iPad edition): the construction symbol library ----------
    V85 has a 'symbol' markup (a box item drawn as vector paths in the stroke color; resizable by its corners, rotatable,
@@ -9741,7 +9752,8 @@ Object.assign(RDX, { EDTX86, unreadable86, editAllText86: () => editAllText(), d
    under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
 const RELNOTES86 = true;
 const RELNOTES = [
-  { v: '86.51', date: 'Nov 17, 2026', items: [
+  { v: '86.55', date: 'Nov 17, 2026', items: [
+    'Side by side: switching which side you edit is quiet now — no overlay, no rebuild, both views and the tool in hand stay as they were.',
     'Print: Save › Print… prints the sheet or the set, with or without markups. On a computer it opens the print dialog directly; on the iPad it hands the PDF to the share sheet, where Print is one of the options.',
     'Save on a computer: Save writes over the document’s own file once you have chosen where it lives (Save as… picks the folder). Open keeps that connection too. On the iPad saving still goes through Files or the share sheet.',
     'Links to a sheet can carry a view: after picking the sheet, drag a box on it; tapping the link lands zoomed to that box. Back returns as before.',
@@ -9749,7 +9761,6 @@ const RELNOTES = [
     'Keyboard: Alt+Z fits text boxes to their text; Ctrl-drag (Cmd on a Mac) drags away a copy; Shift while moving ignores the magnet, smart guides and grid.',
     '“Make the text editable” leaves CAD text with no readable letters alone instead of covering it with blank boxes, and deleting an edited text box removes its white cover too.',
     'Files: drag documents and folders onto folders or onto the path above the cards (hold to lift on touch); the … menu of a card at the bottom of the window stays on screen.',
-    'Side by side: the edited document stays on its own side when you switch sides.',
     'Blueprint and the other drawing looks are reachable from More and on pages without markups; Sharpen scanned pages (Light/Strong) helps soft vendor sheets.',
     'This What’s new card.' ] },
   { v: '86.33', date: 'Nov 16, 2026', items: [
