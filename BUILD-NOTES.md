@@ -255,3 +255,15 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   was inset 1 pt inside the field, which left slivers of the viewer's larger glyphs along the left and right edges ("text
   behind the text") — it now covers the field plus 0.9 pt all round, under the clip. Checked by rendering the week-1 row
   through renderRegion (the screen's own path) before and after: dates and 7R,1AA fitted, no leftovers.
+
+86.86 — CALLROT86 (parts/app99.js): callouts carry an angle. V85 had 'callout' in noRotType, so one drawn on a page the
+  user had rotated ran its text down the sheet with no way to turn it. isRotType/noRotType are wrapped to let a callout
+  rotate, and only its BOX turns: calloutLeader is wrapped to pick the nearest midpoint of the TURNED box (which also
+  fixes tapping the leader), drawMarkup draws the leaders and arrow heads itself in page space and then hands the box
+  (pts[0], pts[1] only) to V85's rotated path, hit/handles/bbox/gbox are wrapped so the box turns while the tips and
+  their bends stay put (callBox86 is the area of the turned box plus the leaders). newMarkup gives a callout, text box
+  or sticky note made on a rotated page rot = 360 − pg.rot, so it reads across the screen; the box keeps its own
+  proportions (an extra width/height swap double-counts and was removed). Test t140.js: a callout is rotatable, a normal
+  page is unchanged, turning one leaves the tip where it was, a new one on a 90° page comes out at 270° and reads
+  across, and both the flattened and the annotated save carry it (FreeText with an appearance stream). Checked against a
+  render of the saved PDF: page content and callout match what the screen showed.

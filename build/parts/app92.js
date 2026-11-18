@@ -4,6 +4,8 @@
    under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
 const RELNOTES86 = true;
 const RELNOTES = [
+  { v: '86.86', date: 'Nov 18, 2026', items: [
+    'Callouts can be turned. Hold on one and use Rotate 90°, or drag its round handle — only the box turns, the leader keeps pointing at what you picked. And on a page you have rotated, a new callout, text box or sticky note starts at the angle that reads across the screen instead of running down the sheet.' ] },
   { v: '86.83', date: 'Nov 18, 2026', items: [
     'The fitted answer now covers the original line completely — no more ghost of the old text showing along the edges of a cell — and answers that came with the file are fitted even before you touch them.' ] },
   { v: '86.80', date: 'Nov 18, 2026', items: [
