@@ -119,6 +119,12 @@ SECTIONS = [
    ('tap', 'more', 'Tap <b>⋯ More › Settings › Festive look</b>.'),
    ('tap', None, 'Choose <b>Automatic</b> (it follows the calendar), a season, or <b>Wizard’s study</b>. <b>Decorations</b> sets animated, still or off.'),
    ('look', None, 'Colours, the top strip, the home banner and a few icons change. A background or accent you pick yourself always wins.')]),
+  dict(id='threeways', title='Mouse, finger and Pencil do the same things', icon='arrow', clip=None, keys='right click hold long press double tap double click pencil finger mouse keyboard parity touch', steps=[
+   ('hold', None, '<b>Right-click</b> on a computer is <b>holding still</b> on the iPad — on a markup, on one of its handles, or on empty paper, with a finger or the Pencil.'),
+   ('tap', None, '<b>Double-click</b> and <b>double-tap</b> both edit a text box, a callout, or a symbol’s letter or number.'),
+   ('drag', None, '<b>Shift-drag</b> (ignore the magnet and guides for one move) is <b>Move it freely once</b> in a markup’s menu. <b>Ctrl-drag</b> (drag away a copy) is <b>Duplicate</b>.'),
+   ('tap', None, '<b>Tab</b> and <b>Shift+Tab</b> between form fields are the <b>◀ ▶</b> buttons above the field; <b>Ctrl+P</b> is <b>Save › Print…</b>; <b>Ctrl+wheel</b> is a pinch.')],
+   note='Once the Pencil has been used, fingers move the page and the Pencil works the tools. Settings › Draw with a finger changes that.'),
   dict(id='keys', title='Keyboard shortcuts', icon='keys', clip=None, keys='keyboard alt z ctrl drag shift snap copy fit text', steps=[
    ('key', None, '<kbd>Alt</kbd> <kbd>Z</kbd> fits the selected text boxes to their text.'),
    ('key', None, '<kbd>Ctrl</kbd>-drag (<kbd>⌘</kbd>-drag on a Mac) a markup to drag away a <b>copy</b>; the original stays.'),

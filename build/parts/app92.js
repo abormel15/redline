@@ -4,6 +4,14 @@
    under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
 const RELNOTES86 = true;
 const RELNOTES = [
+  { v: '86.100', date: 'Nov 18, 2026', items: [
+    'A full check of the app, every tool and menu driven three ways — mouse and keyboard, a finger, the Pencil — and the gaps closed:',
+    'Forms on the iPad: the A− / A+ / Auto / All bar above a field now answers a finger or the Pencil (it only answered a mouse), and ◀ ▶ on that bar step to the previous and next field, the touch way to Shift+Tab and Tab.',
+    'Holding still on a selection handle opens the markup’s menu, so small symbols are easy to reach; holding the Pencil still on empty paper opens the page menu, as a finger does.',
+    'Double-tap or double-click a symbol to change its letter or number.',
+    '“Move it freely once” in a markup’s menu is the touch way to Shift-drag: the next move ignores the magnet, guides and grid.',
+    'After the Pencil has been used, a finger tap with a tool says why nothing was placed. Install help is worded for the device in hand. The keyboard-shortcut list shows this edition’s keys with the touch way beside each.',
+    'The Form entries stay out of the hold menu on sheets that have no fields.' ] },
   { v: '86.94', date: 'Nov 18, 2026', items: [
     'Civil and site symbols: gas, electric and water meters, valves and curb stops, backflow preventers, transformers, poles, hydrants, FDC, post indicator valves, fire sprinkler heads, irrigation heads and valves, cleanouts, manholes, catch basins, area drains, downspouts, culverts, swales, spot elevations, benchmarks, bollards, ADA spaces, parking counts, trees, silt fence and more.',
     'Every symbol’s letter or number is yours to set on the sheet: double-tap it, or hold it and choose “Change the letter or number…”, so two meters can read W1 and W2 and a bubble carries this drawing’s own number.',
@@ -45,7 +53,7 @@ const RELNOTES = [
     'Sheet sets: name pages from the title blocks, a sheet index to jump from, and linked callouts (tap a detail bubble, land on the detail).',
     'Bring in a whole folder of PDFs (subfolders become folders); on the iPad as a ZIP.' ] }];
 const buildLabel86 = () => { try { return (typeof BUILD === 'string' ? BUILD : String(BUILD || '')).split('·')[0].trim(); } catch (e) { return ''; } };
-const relCmp = (a, b) => { const pa = a.split('.').map(Number), pb = b.split('.').map(Number); for (let i = 0; i < Math.max(pa.length, pb.length); i++) { const d = (pa[i] || 0) - (pb[i] || 0); if (d) return d; } return 0; };
+const relCmp = (a, b) => { const pa = String(a).split('.').map(x => parseInt(x, 10)), pb = String(b).split('.').map(x => parseInt(x, 10)); /* parseInt: the stored label is '86.94 · Nov 18…', and Number() of that tail is NaN */ for (let i = 0; i < Math.max(pa.length, pb.length); i++) { const d = (pa[i] || 0) - (pb[i] || 0); if (d) return d; } return 0; };
 function relNotesDialog86(sinceV) { const show = RELNOTES.slice(0, 1); /* the newest update only; All notes lists the rest */
   const md = modal(`<h3>What’s new in Redline</h3><p class="muted" style="margin:0 0 8px">Build ${buildLabel86() || ''} · ${show.length === 1 ? show[0].date : show[show.length - 1].date + ' – ' + show[0].date}</p><div id="relBody" style="max-height:56vh;overflow:auto;display:grid;gap:12px"></div><div class="acts"><button class="btn line" id="relAll">All notes</button><span class="grow"></span><button class="btn solid" id="relOk">Got it</button></div>`), body = md.querySelector('#relBody');
   const draw = (arr) => { body.innerHTML = ''; for (const n of arr) { const sec = document.createElement('div'); const h = document.createElement('div'); h.style.cssText = 'font-weight:700;font-size:14px;margin-bottom:4px'; h.textContent = n.v + ' · ' + n.date; const ul = document.createElement('ul'); ul.style.cssText = 'margin:0;padding-left:18px;display:grid;gap:5px;font-size:14px;line-height:1.4'; for (const t of n.items) { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); } sec.append(h, ul); body.appendChild(sec); } };

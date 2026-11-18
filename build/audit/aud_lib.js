@@ -1,0 +1,29 @@
+// input abstraction: the same action done the PC way (mouse + keyboard) or the iPad way (touch)
+const boot = require('./tw.js');
+module.exports = async function (opts = {}) { const A = await boot(opts); const { pg, finger, W, E, PC } = A;
+  const mdrag = async (x0, y0, x1, y1, steps = 14, mods) => { await pg.mouse.move(x0, y0); if (mods) for (const k of mods) await pg.keyboard.down(k); await pg.mouse.down(); for (let i = 1; i <= steps; i++) { await pg.mouse.move(x0 + (x1 - x0) * i / steps, y0 + (y1 - y0) * i / steps); await W(12); } await pg.mouse.up(); if (mods) for (const k of mods) await pg.keyboard.up(k); await W(150); };
+  const I = PC ? { name: 'PC',
+      tap: async (x, y) => { await pg.mouse.click(x, y); await W(120); }, dbl: async (x, y) => { await pg.mouse.dblclick(x, y); await W(200); },
+      drag: (x0, y0, x1, y1, st) => mdrag(x0, y0, x1, y1, st), menu: async (x, y) => { await pg.mouse.click(x, y, { button: 'right' }); await W(350); },
+      zoom: async (x, y, dir) => { await pg.mouse.move(x, y); await pg.keyboard.down('Control'); await pg.mouse.wheel(0, dir > 0 ? -240 : 240); await pg.keyboard.up('Control'); await W(400); },
+      pan: async (x, y, dx, dy) => { await pg.mouse.move(x, y); await pg.mouse.wheel(-dx, -dy); await W(300); }, mdrag }
+    : process.env.MODE === 'pencil' ? { name: 'PENCIL',
+      tap: async (x, y) => { await A.pen.tap(x, y); await W(120); }, dbl: async (x, y) => { await A.pen.tap(x, y); await W(70); await A.pen.tap(x, y); await W(200); },
+      drag: async (x0, y0, x1, y1) => { await A.pen.stroke([[x0, y0], [x1, y1]]); await W(150); }, menu: async (x, y) => { await A.pen.down(x, y); await A.pen.hold(x, y, 800); await A.pen.up(x, y); await W(350); },
+      zoom: (x, y, dir) => finger.pinch(x, y, dir > 0 ? 60 : 160, dir > 0 ? 160 : 60), pan: (x, y, dx, dy) => finger.twoDrag(x, y, dx, dy), mdrag }
+    : { name: 'IPAD',
+      tap: (x, y) => finger.tap(x, y), dbl: async (x, y) => { await finger.tap(x, y); await W(60); await finger.tap(x, y); await W(200); },
+      drag: (x0, y0, x1, y1, st) => finger.drag(x0, y0, x1, y1, st || 14), menu: async (x, y) => { await finger.longPress(x, y, 750); await W(350); },
+      zoom: (x, y, dir) => finger.pinch(x, y, dir > 0 ? 60 : 160, dir > 0 ? 160 : 60), pan: (x, y, dx, dy) => finger.twoDrag(x, y, dx, dy), mdrag };
+  const el = async (sel) => { const bb = await E(sel => { for (const e of document.querySelectorAll(sel)) { const r = e.getBoundingClientRect(); if (r.width > 0 && r.height > 0 && !e.closest('[hidden]')) return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; } return null; }, sel); if (!bb) throw new Error('no visible element ' + sel); await I.tap(bb.x, bb.y); await W(150); };
+  const rail = async (tool) => { await E(t => { const bs = [...document.querySelectorAll(`#rail .btn[data-tool="${t}"]`)]; const b = bs[bs.length - 1]; if (b) b.scrollIntoView({ block: 'center' }); }, tool); await W(80);
+    const bb = await E(t => { const bs = [...document.querySelectorAll(`#rail .btn[data-tool="${t}"]`)].filter(e => e.getBoundingClientRect().height > 0); const b = bs[bs.length - 1]; if (!b) return null; const r = b.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }, tool); if (!bb) throw new Error('rail: ' + tool); await I.tap(bb.x, bb.y); await W(220); };
+  const menuItems = () => E(() => [...document.querySelectorAll('.menu .btn, .menu .mi')].map(b => (b.querySelector('span') || b).textContent.trim()));
+  const pick = async (re) => { const bb = await E(src => { const re = new RegExp(src, 'i'); const b = [...document.querySelectorAll('.menu .btn, .menu .mi')].find(x => re.test((x.querySelector('span') || x).textContent.trim())); if (!b) return null; b.scrollIntoView({ block: 'center' }); const r = b.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }, re.source); if (!bb) return false; await I.tap(bb.x, bb.y); await W(350); return true; };
+  const reset = async () => { await A.clean(); await E(() => { const S = __rd.S; S.markups = []; S.sel.clear(); S.draft = null; __rd.setTool('select'); __rd.changed(); }); await W(200); };
+  const pt = (fx, fy) => E(([fx, fy]) => { const S = __rd.S, pg = S.pages[S.cur], v = S.view, r = document.getElementById('stage').getBoundingClientRect(); const w = pg.rot % 180 ? pg.h : pg.w, h = pg.rot % 180 ? pg.w : pg.h; return { x: r.left + v.tx + fx * w * v.s, y: r.top + v.ty + fy * h * v.s }; }, [fx, fy]);
+  const sig = () => E(() => { const S = __rd.S, m = S.markups[S.markups.length - 1]; return { n: S.markups.length, last: m ? m.type : '', tool: S.tool, sel: S.sel.size, editing: !!S.editing, draft: !!S.draft, modal: [...document.querySelectorAll('.scrim .modal h3, .scrim .modal h2')].map(h => h.textContent.trim()).join('|').slice(0, 50), menu: !!document.querySelector('.menu'), win: [...document.querySelectorAll('.calcwin:not([hidden]), #tkwin:not([hidden])')].length, view: [S.view.s, S.view.tx, S.view.ty].map(v => +v.toFixed(2)).join(','), toast: ((document.getElementById('toast') || {}).textContent || '').slice(0, 60) }; });
+  // open a document the way a person does: its card on the Files screen
+  const openCard = async (name) => { await E(() => { __rd.X.showFiles(); }); await W(600); const bb = await E(n => { const c = [...document.querySelectorAll('#files .fcard')].find(q => { const t = q.querySelector('.fnm'); return t && t.textContent.trim() === n; }); if (!c) return null; c.scrollIntoView({ block: 'center' }); const r = (c.querySelector('.fth') || c).getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height * 0.6 }; }, name); if (!bb) throw new Error('no card ' + name); await I.tap(bb.x, bb.y); await W(1800); await A.fitView(); await W(500); };
+  return Object.assign(A, { I, el, rail, menuItems, pick, reset, pt, sig, openCard });
+};

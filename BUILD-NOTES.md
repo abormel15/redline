@@ -305,3 +305,36 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   later part could not wrap an earlier one. Tests: t142.js (ask-first, light way, all-at-once, measured file sizes,
   cleanup, empty fields left out of the save), t143.js (the group, placing a meter, the hold menu, the label dialog, two
   meters with their own labels). t134 and t136 updated for the new behaviour.
+
+86.100 — the two-sided audit (markup/aud_lib.js, aud1–aud4.js) and PARITY86 (parts/app103.js).
+  Harness: tw.js gained a PC mode (VP=pc: 1440×900, no touch, Windows Chrome UA); aud_lib.js gives one input interface
+  with three back ends — mouse+keyboard, finger (CDP touch), Pencil (CDP pen pointer) — so the same script runs each
+  action all three ways (MODE=finger|pencil with VP=air, or VP=pc). aud1: every rail tool creates its markup or opens
+  its dialog; aud2: select / move / resize / rotate / undo / menus / duplicate / delete / text editing / colours / zoom
+  / pan / pages / marquee / copy-paste / eraser modes / symbols / callout rotation / crop, plus the keyboard-only paths
+  on PC; aud3: every More entry, Save and export, Settings, account dialog, What's new and Guide, forms on the real
+  timesheet, Files (folder, drag into it, card menu, search), side by side; aud4: device identity — an iPad (iPad UA,
+  no file pickers, navigator.share stub) saves and prints through the share sheet and gets Home Screen steps; a computer
+  (File System Access stubs) saves over the picked file, has Save as…, prints through the system dialog and gets
+  Install-as-an-app steps.
+  What it found, and the fixes:
+  · app98: the form size bar swallowed touchstart to keep the keyboard up, which also swallowed the click iOS sends —
+    so on a real iPad the bar did nothing for a finger or the Pencil. It now acts on touchend (click kept for a mouse).
+    ◀ ▶ added (fieldStep86 ∓1): the touch Shift+Tab / Tab.
+  · app103 PARITY86: hold-still on a selection handle opens the menu (a second pointerdown listener arms g.lp for
+    kind 'handle'; V85 only did for 'move'); Pencil hold-still on empty paper opens the page menu (kind 'marquee' + pen);
+    double-tap on a symbol opens symTextDialog86 (capture pointerdown notes the symbol, showPanel wrapper diverts V85's
+    "open the list panel"); a finger tap with a placing tool after penSeen toasts why, once per tool; "Move it freely
+    once" (PAR.freeOnce read by gridCfg/moveSnap wrappers, cleared after the next gesture) is the touch Shift-drag;
+    installHelp is device-worded (patches.py routes the menu label through __rdInstallLabel86; beforeinstallprompt is
+    kept for an Install now button); keysDialog lists this edition's keys with their touch ways.
+  · app96: the Form entries are left out of the page hold menu when the page has no fields.
+  · app92: relCmp used Number() on '94 · Nov 18 2026 …' (NaN → 0), so every stored build compared as x.0; parseInt now.
+  Not app bugs (recorded so the next audit does not chase them): once the Pencil is seen a finger selects and pans (V85
+  design, line 1634); the eraser defaults to Precise (ink only; Whole stroke is the select in the bar); setting #fOpen's
+  files from a script while Files is showing imports without opening (the New › Bring in PDFs flow opens it).
+  Also from the regression run on 86.100: app87's Files drag handler assumed every pointerdown has an element target
+  (e.target.closest threw when the target was the document — seen in t129/t130); guarded. t121 (perspective guides) is
+  written for the 13-inch viewport: run it without VP=air (at 1180×820 its wobbly stroke starts nearer the horizontal
+  family than the vanishing line, 11.6° vs 12.5°, so the assist rightly picks horizontal and the test's expectation fails).
+  The size bar drops only a click that trails a touchend (same-kind repeats all count, so quick A− A− works).

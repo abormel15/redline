@@ -24,7 +24,7 @@ function dndEnd(drop) { clearTimeout(DND.timer); const { card, keys, over, lifte
   const wasLifted = lifted, wasMoved = moved; Object.assign(DND, { id: null, key: null, keys: [], card: null, lifted: false, moved: false, ghost: null, over: null, overEl: null });
   if (!wasLifted) return; DND.suppressClick = Date.now() + 400; if (drop && over != null && wasMoved) dndMove(keys, over); else if (drop && !wasMoved && card) { const m = card.querySelector('.fmore'); if (m && !m.hidden) setTimeout(() => m.click(), 0); } }
 function dndBlockScroll(e) { if (DND.lifted) e.preventDefault(); }
-document.addEventListener('pointerdown', e => { if (!DND86 || DND.id != null || $('files').hidden || e.button > 0) return; if (e.target.closest('.fmore, button, input, a')) return; const card = e.target.closest('#files .fcard[data-key]'); const key = dndKeyOf(card); if (!key) return;
+document.addEventListener('pointerdown', e => { if (!DND86 || DND.id != null || $('files').hidden || e.button > 0) return; if (!e.target || !e.target.closest) return; /* a pointer event aimed at the document itself has no element to ask */ if (e.target.closest('.fmore, button, input, a')) return; const card = e.target.closest('#files .fcard[data-key]'); const key = dndKeyOf(card); if (!key) return;
   Object.assign(DND, { id: e.pointerId, key, keys: dndKeys(key), card, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, lifted: false, moved: false });
   if (e.pointerType === 'mouse') return; /* the mouse lifts on the first real movement */
   DND.timer = setTimeout(() => { if (DND.id === e.pointerId && !DND.lifted && Math.hypot(DND.x - DND.x0, DND.y - DND.y0) < 8) { dndLift(); document.addEventListener('touchmove', dndBlockScroll, { capture: true, passive: false }); } }, 400); }, true);
@@ -34,7 +34,7 @@ document.addEventListener('pointermove', e => { if (DND.id !== e.pointerId) retu
 document.addEventListener('dragstart', e => { if (DND86 && e.target.closest && e.target.closest('#files .fcard')) e.preventDefault(); }, true); /* the thumbnail image must not start a native drag, which cancels the pointer */
 document.addEventListener('pointerup', e => { if (DND.id === e.pointerId) dndEnd(true); }, true);
 document.addEventListener('pointercancel', e => { if (DND.id === e.pointerId) dndEnd(false); }, true);
-document.addEventListener('click', e => { if (DND.suppressClick > Date.now() && e.target.closest('#files .fcard')) { e.stopPropagation(); e.preventDefault(); DND.suppressClick = 0; } }, true);
+document.addEventListener('click', e => { if (DND.suppressClick > Date.now() && e.target && e.target.closest && e.target.closest('#files .fcard')) { e.stopPropagation(); e.preventDefault(); DND.suppressClick = 0; } }, true);
 document.addEventListener('contextmenu', e => { if (DND.lifted) { e.preventDefault(); e.stopImmediatePropagation(); } }, true);
 HELP.push(['Moving documents and folders by dragging', ['In Files, drag a document or folder onto a folder, or onto Projects or a parent folder in the path above the cards. With a mouse just drag; with a finger or the Pencil hold the card until it lifts, then move. Select several first and they move together. A folder cannot be dropped into itself.']]);
 Object.assign(RDX, { DND86, dndMove, dndTargetAt, DND });
