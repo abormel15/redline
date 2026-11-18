@@ -4,6 +4,8 @@
    under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
 const RELNOTES86 = true;
 const RELNOTES = [
+  { v: '86.90', date: 'Nov 18, 2026', items: [
+    'Crop pages. Draw a rectangle around the part of the sheet worth keeping, hold on it, and choose Crop this page to the box or Crop every page to the box. The markups move with it, the saved PDF opens cropped in other readers, and ⋯ More › Undo the crop brings the whole sheet back.' ] },
   { v: '86.86', date: 'Nov 18, 2026', items: [
     'Callouts can be turned. Hold on one and use Rotate 90°, or drag its round handle — only the box turns, the leader keeps pointing at what you picked. And on a page you have rotated, a new callout, text box or sticky note starts at the angle that reads across the screen instead of running down the sheet.' ] },
   { v: '86.83', date: 'Nov 18, 2026', items: [

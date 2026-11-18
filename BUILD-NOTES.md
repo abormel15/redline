@@ -267,3 +267,18 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   page is unchanged, turning one leaves the tip where it was, a new one on a 90° page comes out at 270° and reads
   across, and both the flattened and the annotated save carry it (FreeText with an appearance stream). Checked against a
   render of the saved PDF: page content and callout match what the screen showed.
+
+86.90 — CROP86 (parts/app100.js): pages can be cropped. A crop is a window, never a cut: pg.crop86 = [x0,y0,x1,y1] in
+  that page's PDF units is pushed into pdf.js's own page view (page._pageInfo.view, with the original kept in
+  page.__view086), so every render path — base, detail, thumbnails, the second pane, snapshots, print — follows without
+  being touched. patches.py turns V85's `const getPdfPage` into `let` so the part can wrap it and give a page its window
+  before it is drawn (a reopened document restores pg.w/h/toPdf from its saved state, so only the view needs applying).
+  Applying a crop re-measures the page (getViewport → w/h/toPdf) and shifts every markup on it by the new origin (a crop
+  is a pure translation, so shiftPt is enough); detected form fields for that page are dropped and re-found on demand.
+  buildPdf is wrapped to setCropBox on cropped pages, so a saved PDF opens cropped elsewhere while the whole sheet stays
+  in the file. UI: hold on a rectangle markup → Crop this page / every page to the box (the rectangle is consumed as the
+  guide; markups left outside are counted in a confirm), ⋯ More › Crop pages… explains it and offers "Draw the
+  rectangle", and Undo the crop on this page / every page restores pg.crop86 = null. Test t141.js: page size follows the
+  box, the guide rectangle goes, a markup inside keeps its place, the pdf.js page measures the window, the saved PDF has
+  the CropBox with the full MediaBox underneath, the crop survives reopening, undo restores size and markups, and every
+  page crops to the same window. Not covered: OCR text positions and saved link view boxes are not re-mapped by a crop.

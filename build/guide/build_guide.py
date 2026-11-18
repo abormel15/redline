@@ -33,6 +33,7 @@ I = {
  'new': '<path d="M12 3v18M3 12h18"/>',
  'install': '<path d="M7 3h10v18H7zM10 19h4M12 7v6M9 10l3 3 3-3"/>',
  'folder': '<path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM12 11v6M9 14h6"/>',
+ 'crop': '<path d="M6 2v16h16M2 6h16v16"/>',
  'help': '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.8.5-1.1 1-1.1 1.8M12 17h.01"/>',
  'more': '<path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="3"/>',
  'pen': '<path d="M4 20l1-5L16 4l4 4L9 19zM14 6l4 4"/>',
@@ -66,6 +67,12 @@ SECTIONS = [
    ('drag', None, 'Drag it onto a <b>folder card</b>, or onto <b>Projects</b> or a parent folder in the path above the cards.'),
    ('tap', None, 'Select several first (the <b>Select</b> button) and they move together.')],
    note='A quick swipe still scrolls. A folder cannot be dropped into itself. “Move to a folder” in the card’s … menu still works too.'),
+  dict(id='crop', title='Crop pages down to what matters', icon='crop', clip=None, keys='crop trim cut page sheet detail title block zoom area', steps=[
+   ('drag', None, 'With the <b>Rectangle</b> tool, draw a box around the part of the sheet you want to keep.'),
+   ('hold', None, 'Hold on that rectangle and choose <b>Crop this page to the box</b>, or <b>Crop every page to the box</b> for the whole set.'),
+   ('look', None, 'The page becomes that area: markups move with it, and a PDF saved while cropped opens cropped for everyone else too.'),
+   ('tap', 'more', 'Changed your mind? <b>⋯ More › Undo the crop</b> brings the whole sheet back — nothing was thrown away.')],
+   note='A crop is a window on the page, not a cut, so it can be undone at any time and the file still holds the full sheet.'),
   dict(id='bringfolder', title='Bring in a whole folder of drawings', icon='files', clip=None, keys='import folder zip bring in subfolders', steps=[
    ('tap', None, 'On the iPad: in the Files app, hold the folder and choose <b>Compress</b> to make a ZIP.'),
    ('tap', None, 'In Redline: <b>New › Bring in a folder</b> (or <b>⋯ More › Bring in a folder</b>) and pick the ZIP. On a computer it opens a folder picker instead.'),
