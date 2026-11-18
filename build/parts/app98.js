@@ -11,6 +11,13 @@ function fieldSize86(pg, f, auto) { try { if (!FORMSZ86 || !pg || !pg.src || !f)
 function fszAuto86(f) { const h = f.b.y1 - f.b.y0; if (f.det) return f.multi ? Math.min(11, Math.max(7, h * 0.18)) : Math.min(12, Math.max(6, h * 0.62)); if (f.own) return 11; return f.fs0 > 0 ? f.fs0 : clamp(h * 0.6, 6, 14); }
 /* the PDF's own size for each real field (its DA string; 0 = automatic), so the bar can say what Auto means there */
 const pageFieldsSz86 = pageFields; pageFields = async function (pg) { const list = await pageFieldsSz86.apply(this, arguments); try { if (FORMSZ86 && pg && pg.src && Array.isArray(list) && !list.__fs86) { list.__fs86 = true; const page = await getPdfPage(pg), an = await page.getAnnotations(), by = new Map(); for (const a of an) if (a.subtype === 'Widget') by.set(a.id, a); for (const f of list) { if (f.det) continue; const a = by.get(f.id); const sz = a && a.defaultAppearanceData && +a.defaultAppearanceData.fontSize; if (sz > 0) f.fs0 = sz; } } } catch (e) {} return list; };
+/* the size a field actually gets: the wanted size, shrunk until the answer fits the box (width for one line, height for
+   a wrapped one). A chosen size is a ceiling, not a promise — text is never cut off at the edge of the box. */
+function fszFit86(f, v, want) { try { const t = String(v == null ? '' : v); if (!t) return want; const w = f.b.x1 - f.b.x0, h = f.b.y1 - f.b.y0; let s = want;
+    if (f.multi) { while (s > 4 && wrapText(t, s, false, Math.max(10, w - 6)).length * s * 1.22 > h - 3) s -= 0.5; }
+    else { while (s > 4 && textW(t, s, false) > w - 5) s -= 0.5; }
+    return Math.max(4, Math.round(s * 2) / 2); } catch (e) { return want; } }
+function fszOwn86(f) { return f.det ? 0 : (f.fs0 > 0 ? f.fs0 : 0); } /* the size the PDF itself gives a real field (0 = automatic) */
 function fszChosen86(pg, f) { const m = S.formSz86[pg.src]; if (!m) return null; const v = m[f.id] != null ? m[f.id] : m.__all; return typeof v === 'number' && v > 0 ? v : null; }
 function fszSet86(pg, f, v, all) {
   const m = { ...(S.formSz86[pg.src] || {}) };
@@ -24,8 +31,10 @@ const readDocSz86 = readDoc; readDoc = async function (id) { const ok = await re
 const resetDocExtrasSz86 = resetDocExtras; resetDocExtras = function () { S.formSz86 = {}; return resetDocExtrasSz86.apply(this, arguments); };
 /* drawing: real (own) fields with a chosen size are painted over at that size (pdf.js draws them at the PDF's own size);
    detected fields ask fieldSize86 inside their own drawing code (parts/app96.js) */
-const drawFormTextSz86 = drawFormText; drawFormText = function (p, pg) { const r = drawFormTextSz86.apply(this, arguments); try { if (!FORMSZ86 || !pg || !pg.src) return r; const m = S.formSz86[pg.src]; if (!m) return r; const fs = formCache.get(pg.src + ':' + pg.n), vals = S.form[pg.src]; if (!fs || !vals) return r;
-    for (const f of fs) { if (f.det || f.type !== 'text' || vals[f.id] == null || vals[f.id] === '') continue; const sz = fszChosen86(pg, f); if (!sz) continue; const b = f.b, w = b.x1 - b.x0, h = b.y1 - b.y0, v = String(vals[f.id]);
+const drawFormTextSz86 = drawFormText; drawFormText = function (p, pg) { const r = drawFormTextSz86.apply(this, arguments); try { if (!FORMSZ86 || !pg || !pg.src) return r; const fs = formCache.get(pg.src + ':' + pg.n), vals = S.form[pg.src]; if (!fs || !vals) return r;
+    for (const f of fs) { if (f.det || f.type !== 'text' || f.own) continue; const v0 = fieldVal(pg, f); if (v0 == null || v0 === '') continue; const v = String(v0), chosen = fszChosen86(pg, f), own = fszOwn86(f), want = chosen || own; if (!want) continue; /* automatic fields are already fitted by the viewer */
+      const sz = fszFit86(f, v, want); if (!chosen && sz >= own - 0.01) continue; /* its own size fits: leave the PDF's own drawing alone */
+      const b = f.b, w = b.x1 - b.x0, h = b.y1 - b.y0;
       p.save(); pathPoly(p, [{ x: b.x0 + 1, y: b.y0 + 1 }, { x: b.x1 - 1, y: b.y0 + 1 }, { x: b.x1 - 1, y: b.y1 - 1 }, { x: b.x0 + 1, y: b.y1 - 1 }], true); p.paint({ fill: '#ffffff' }); pathPoly(p, [{ x: b.x0, y: b.y0 }, { x: b.x1, y: b.y0 }, { x: b.x1, y: b.y1 }, { x: b.x0, y: b.y1 }], true); p.clip();
       if (f.multi) { const lines = wrapText(v, sz, false, Math.max(10, w - 6)); lines.forEach((ln, i) => p.text(ln, b.x0 + 3, b.y0 + 2 + sz * 0.95 + i * sz * 1.22, sz, '#000000', false)); }
       else p.text(v, b.x0 + 2.5, b.y1 - Math.max(2, (h - sz * 0.72) / 2), sz, '#000000', false);
@@ -34,8 +43,13 @@ const drawFormTextSz86 = drawFormText; drawFormText = function (p, pg) { const r
    there — without it Acrobat falls back to the form's default (auto) the moment the text changes */
 function fszDA86(tf, sz) { try { const cur = tf.acroField.getDefaultAppearance && tf.acroField.getDefaultAppearance(); const da = cur && /Tf/.test(cur) ? cur.replace(/\/(\S+)\s+[\d.]+\s+Tf/, '/$1 ' + sz + ' Tf') : '/Helvetica ' + sz + ' Tf 0 g'; tf.acroField.setDefaultAppearance(da); } catch (e) {} }
 /* saving: chosen sizes on real fields (detected fields are sized in parts/app96.js through fieldSize86) */
-const applyFormLibSz86 = applyFormLib; applyFormLib = function (doc, sid) { const r = applyFormLibSz86.apply(this, arguments); try { if (!FORMSZ86) return r; const m = S.formSz86[sid]; if (!m) return r; const vals = S.form[sid] || {}; const form = doc.getForm(), byRef = new Map(); for (const f of form.getFields()) f.acroField.getWidgets().forEach(w => { const ref = doc.context.getObjectRef(w.dict); if (ref) byRef.set(ref.objectNumber + 'R' + (ref.generationNumber ? ref.generationNumber : ''), f); });
-    let n = 0; for (const id of byRef.keys()) { const v = m[id] != null ? m[id] : m.__all; if (!(typeof v === 'number' && v > 0)) continue; const f = byRef.get(id); if (!(f instanceof PL.PDFTextField)) continue; if (vals[id] == null || vals[id] === '') continue; try { f.setFontSize(v); fszDA86(f, v); n++; } catch (e) {} }
+const applyFormLibSz86 = applyFormLib; applyFormLib = function (doc, sid) { const r = applyFormLibSz86.apply(this, arguments); try { if (!FORMSZ86) return r; const vals = S.form[sid] || {}; const m = S.formSz86[sid] || {};
+    const fByRef = new Map(); for (const [k, list] of formCache) if (k.startsWith(sid + ':')) for (const o of list) if (!o.det) fByRef.set(o.id, o);
+    const form = doc.getForm(), byRef = new Map(); for (const f of form.getFields()) f.acroField.getWidgets().forEach(w => { const ref = doc.context.getObjectRef(w.dict); if (ref) byRef.set(ref.objectNumber + 'R' + (ref.generationNumber ? ref.generationNumber : ''), f); });
+    let n = 0; for (const id of byRef.keys()) { const fd = fByRef.get(id); if (!fd) continue; const v = vals[id] != null ? vals[id] : fd.v0; if (v == null || v === '') continue; const f = byRef.get(id); if (!(f instanceof PL.PDFTextField)) continue;
+      const chosen = m[id] != null ? m[id] : m.__all, own = fszOwn86(fd), want = (typeof chosen === 'number' && chosen > 0) ? chosen : own; if (!want) continue; /* automatic: Acrobat fits it itself */
+      const sz = fszFit86(fd, v, want); if (!chosen && sz >= own - 0.01) continue;
+      try { f.setFontSize(sz); fszDA86(f, sz); n++; } catch (e) {} }
     if (n) { try { form.updateFieldAppearances(); } catch (e) { console.warn(e); } } } catch (e) { console.warn(e); }
   return r; };
 /* the editor: font at the chosen size, and the size bar */
@@ -51,8 +65,9 @@ function fszBar86() { let bar = document.getElementById('fszBar86'); if (bar) re
   new MutationObserver(() => { if (ed.hidden) bar.hidden = true; }).observe(ed, { attributes: true, attributeFilter: ['hidden'] });
   return bar; }
 function fszApply86() { const fo = fieldOpen; if (!fo || !FORMSZ86) return; const ed = $('fieldEd'), f = fo.f, pg = fo.pg; if (f.type !== 'text') return; const bar = fszBar86(), chosen = fszChosen86(pg, f), auto = fszAuto86(f);
-  if (chosen) { ed.style.fontSize = Math.max(9, chosen * S.view.s) + 'px'; if (!f.multi) ed.style.lineHeight = ed.style.height.replace('px', '') - 4 + 'px'; }
-  const lab = bar.querySelector('#fszLab86'); lab.textContent = chosen ? chosen + ' pt' : 'Auto · ' + Math.round(auto); bar.querySelector('[data-k=auto]').classList.toggle('solid', !!chosen);
+  if (chosen) { ed.style.fontSize = Math.max(9, fszFit86(f, ed.value, chosen) * S.view.s) + 'px'; if (!f.multi) ed.style.lineHeight = ed.style.height.replace('px', '') - 4 + 'px'; }
+  const lab = bar.querySelector('#fszLab86'), val = ed.value, want = chosen || auto, fit = fszFit86(f, val, want);
+  lab.textContent = chosen ? (fit < chosen - 0.01 ? chosen + '→' + fit + ' pt' : chosen + ' pt') : 'Auto · ' + Math.round(fit); bar.querySelector('[data-k=auto]').classList.toggle('solid', !!chosen);
   bar.hidden = false; const top = ed.offsetTop - bar.offsetHeight - 6; bar.style.left = Math.max(4, Math.min(ed.offsetLeft, (ed.parentElement ? ed.parentElement.clientWidth : W) - bar.offsetWidth - 4)) + 'px'; bar.style.top = (top >= 4 ? top : ed.offsetTop + ed.offsetHeight + 6) + 'px'; }
 const fieldTapSz86 = fieldTap; fieldTap = function (p, s) { const r = fieldTapSz86.apply(this, arguments); try { if (FORMSZ86 && r && fieldOpen) fszApply86(); } catch (e) {} return r; };
 (() => { const ed = $('fieldEd'); if (!ed) return; ed.addEventListener('keydown', e => { if (!FORMSZ86 || !fieldOpen || !(e.ctrlKey || e.metaKey) || !e.shiftKey) return; const up = e.key === '>' || e.key === '.' , dn = e.key === '<' || e.key === ','; if (!up && !dn) return; e.preventDefault(); e.stopImmediatePropagation(); const bar = fszBar86(); bar.querySelector(up ? '[data-k=up]' : '[data-k=dn]').click(); }, true); })(); /* Ctrl/⌘+Shift+> and < step the size from the keyboard */
@@ -65,4 +80,4 @@ function fszDialog86(pg, f) { const chosen = fszChosen86(pg, f), auto = fszAuto8
 const ctxExtrasSz86 = ctxExtras; ctxExtras = function (items, sm, one, s) { const r = ctxExtrasSz86.apply(this, arguments); try { if (!FORMSZ86 || (sm && sm.length) || !cur() || !cur().src) return r; const pg = cur(), p = s && typeof s.x === 'number' ? toPage(s.x, s.y) : null; if (!p) return r; const fs = formCache.get(pg.src + ':' + pg.n) || []; const under = fs.find(f => f.type === 'text' && p.x >= f.b.x0 && p.x <= f.b.x1 && p.y >= f.b.y0 && p.y <= f.b.y1); if (!under) return r;
     const i = items.findIndex(it => it && it.label === 'Remove this field'); const it = { label: 'Text size for this field…', note: fszChosen86(pg, under) ? fszChosen86(pg, under) + ' pt' : 'automatic', icon: 'text', fn: () => fszDialog86(pg, under) }; if (i >= 0) items.splice(i, 0, it); else { const j = items.findIndex(x => x && x.head === 'Form'); if (j >= 0) items.splice(j + 1, 0, it); else items.push('-', { head: 'Form' }, it); } } catch (e) {} return r; };
 HELP.push(['Text size in form fields', ['A form field draws its answer at an automatic size that fits the box. While a field is open, the small bar above it has A− and A+ for a size of your own, Auto to go back, and All to use that size for every field in the document. Or hold on a field and choose Text size for this field…. Chosen sizes go into the saved PDF, so Acrobat and Preview show the same.']]);
-Object.assign(RDX, { FORMSZ86, fieldSize86, fszDA86, fszSet86, fszChosen86, fszAuto86, fszDialog86, fszApply86, cur86: () => cur(), formCache86: () => formCache });
+Object.assign(RDX, { FORMSZ86, fieldSize86, fszDA86, fszFit86, fszOwn86, fieldVal86: (pg, f) => fieldVal(pg, f), textW86: (t, s, b) => textW(t, s, b), fszSet86, fszChosen86, fszAuto86, fszDialog86, fszApply86, cur86: () => cur(), formCache86: () => formCache });

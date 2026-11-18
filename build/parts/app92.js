@@ -4,6 +4,8 @@
    under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
 const RELNOTES86 = true;
 const RELNOTES = [
+  { v: '86.80', date: 'Nov 18, 2026', items: [
+    'Form answers are never cut off at the edge of a box any more. A size you pick is a ceiling: where the answer is too long for a narrow cell it shrinks to fit, on screen and in the saved PDF, so Acrobat shows the same. Answers that came with the file are fitted too.' ] },
   { v: '86.76', date: 'Nov 18, 2026', items: [
     'Forms: text size in a field is yours to set. While a field is open, the bar above it has A− and A+, Auto to go back, and All to use that size for every field in the document (Ctrl/⌘+Shift+> and < from the keyboard). Or hold on a field › Text size for this field…. The size goes into the saved PDF.' ] },
   { v: '86.67', date: 'Nov 17, 2026', items: [

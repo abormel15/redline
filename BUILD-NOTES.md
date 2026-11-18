@@ -234,3 +234,17 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   DA at 14 pt, sizes after reopening, per-field size on a detected field, the saved and flattened output, the keyboard
   step. Known: pdf-lib writes the DA font as /Helvetica while the form's resources name it /Helv, so Acrobat re-editing a
   field there falls back to its automatic size (display, printing and flattening are unaffected) — not worth the surgery.
+
+86.80 — FORMSZ86 fit (parts/app98.js, app96.js): a chosen size is a CEILING, never a promise of clipping. fszFit86(f, v,
+  want) shrinks in 0.5 pt steps until the answer fits the box (textW against the width for one line, wrapped line count
+  against the height for a multi-line field) and every drawing and saving path goes through it. fszOwn86(f) is the size
+  the PDF itself gives a real field (f.fs0 from the annotation's defaultAppearanceData, 0 = automatic). Real fields are
+  repainted by app98's drawFormText wrapper when a chosen size exists OR when the field's own fixed size overflows — an
+  automatic field is left to the viewer, which already fits it. applyFormLib writes the fitted size (setFontSize +
+  fszDA86) for the same cases, so Acrobat matches what Redline draws. Values that came with the file (f.v0, through
+  fieldVal) count, not only ones typed here: the Madison Homes timesheet arrives with its cells at a fixed 14 pt, which
+  clips '11/16/26' in a 50 pt cell and '7R,1AA' in a 34 pt one — both in Acrobat and in Redline. The bar's label shows
+  the shrink ('14→8 pt'). Test t139.js on his own sheet (fx/timesheet.pdf): the fields arrive at 14 pt, Redline fits them
+  (14→11.5 and 14→8), the saved PDF carries sizes ≤ the chosen 14 with the narrow cells smaller, and the flattened PDF's
+  text has the dates and hours in full. The blue boxes he saw in Acrobat on a flattened copy are Acrobat's own field
+  highlight on the fillable copy in the next tab — a render of the flattened file here has no shading at all.
