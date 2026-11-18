@@ -4,6 +4,8 @@
    under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
 const RELNOTES86 = true;
 const RELNOTES = [
+  { v: '86.83', date: 'Nov 18, 2026', items: [
+    'The fitted answer now covers the original line completely — no more ghost of the old text showing along the edges of a cell — and answers that came with the file are fitted even before you touch them.' ] },
   { v: '86.80', date: 'Nov 18, 2026', items: [
     'Form answers are never cut off at the edge of a box any more. A size you pick is a ceiling: where the answer is too long for a narrow cell it shrinks to fit, on screen and in the saved PDF, so Acrobat shows the same. Answers that came with the file are fitted too.' ] },
   { v: '86.76', date: 'Nov 18, 2026', items: [

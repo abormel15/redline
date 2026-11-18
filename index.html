@@ -8529,7 +8529,7 @@ try { HELP.push(['Choosing what goes in a report', ['Every report that lists mar
 Object.assign(RDX, { reportChooser, reportDialog, runReport, RC_FOR, rcKind, RF: () => RF_ONLY });
 
 /* ---------- V81: hold-to-straighten sign, and which version is running ---------- */
-const BUILD = '86.80 · Nov 18 2026 · iPad edition';
+const BUILD = '86.83 · Nov 18 2026 · iPad edition';
 try { const st = document.createElement('style'); st.textContent = `#snapCue{position:fixed;z-index:60;pointer-events:none;padding:6px 12px;border-radius:999px;background:#17212b;color:#fff;font:600 14px var(--ui,system-ui);box-shadow:0 2px 10px #0004;opacity:0;transform:scale(.6);transition:opacity .12s,transform .12s;white-space:nowrap}
 #snapCue.on{opacity:1;transform:scale(1);animation:snapPop .32s ease-out}@keyframes snapPop{0%{transform:scale(.6)}55%{transform:scale(1.15)}100%{transform:scale(1)}}`; document.head.appendChild(st); } catch (e) {}
 // the sign never outlives the stroke, whatever ends it
@@ -9760,6 +9760,8 @@ Object.assign(RDX, { EDTX86, unreadable86, editAllText86: () => editAllText(), d
    under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
 const RELNOTES86 = true;
 const RELNOTES = [
+  { v: '86.83', date: 'Nov 18, 2026', items: [
+    'The fitted answer now covers the original line completely — no more ghost of the old text showing along the edges of a cell — and answers that came with the file are fitted even before you touch them.' ] },
   { v: '86.80', date: 'Nov 18, 2026', items: [
     'Form answers are never cut off at the edge of a box any more. A size you pick is a ceiling: where the answer is too long for a narrow cell it shrinks to fit, on screen and in the saved PDF, so Acrobat shows the same. Answers that came with the file are fitted too.' ] },
   { v: '86.76', date: 'Nov 18, 2026', items: [
@@ -10074,11 +10076,13 @@ const readDocSz86 = readDoc; readDoc = async function (id) { const ok = await re
 const resetDocExtrasSz86 = resetDocExtras; resetDocExtras = function () { S.formSz86 = {}; return resetDocExtrasSz86.apply(this, arguments); };
 /* drawing: real (own) fields with a chosen size are painted over at that size (pdf.js draws them at the PDF's own size);
    detected fields ask fieldSize86 inside their own drawing code (parts/app96.js) */
-const drawFormTextSz86 = drawFormText; drawFormText = function (p, pg) { const r = drawFormTextSz86.apply(this, arguments); try { if (!FORMSZ86 || !pg || !pg.src) return r; const fs = formCache.get(pg.src + ':' + pg.n), vals = S.form[pg.src]; if (!fs || !vals) return r;
+const drawFormTextSz86 = drawFormText; drawFormText = function (p, pg) { const r = drawFormTextSz86.apply(this, arguments); try { if (!FORMSZ86 || !pg || !pg.src) return r; const fs = formCache.get(pg.src + ':' + pg.n); if (!fs) return r; /* answers that came with the file are not in S.form */
     for (const f of fs) { if (f.det || f.type !== 'text' || f.own) continue; const v0 = fieldVal(pg, f); if (v0 == null || v0 === '') continue; const v = String(v0), chosen = fszChosen86(pg, f), own = fszOwn86(f), want = chosen || own; if (!want) continue; /* automatic fields are already fitted by the viewer */
       const sz = fszFit86(f, v, want); if (!chosen && sz >= own - 0.01) continue; /* its own size fits: leave the PDF's own drawing alone */
       const b = f.b, w = b.x1 - b.x0, h = b.y1 - b.y0;
-      p.save(); pathPoly(p, [{ x: b.x0 + 1, y: b.y0 + 1 }, { x: b.x1 - 1, y: b.y0 + 1 }, { x: b.x1 - 1, y: b.y1 - 1 }, { x: b.x0 + 1, y: b.y1 - 1 }], true); p.paint({ fill: '#ffffff' }); pathPoly(p, [{ x: b.x0, y: b.y0 }, { x: b.x1, y: b.y0 }, { x: b.x1, y: b.y1 }, { x: b.x0, y: b.y1 }], true); p.clip();
+      /* cover the whole field, a hair beyond its edge: the viewer has already drawn the answer at the PDF's own size and
+         clipped it at the box, so an inset cover leaves slivers of those glyphs showing along the edges */
+      const o = 0.9; p.save(); pathPoly(p, [{ x: b.x0 - o, y: b.y0 - o }, { x: b.x1 + o, y: b.y0 - o }, { x: b.x1 + o, y: b.y1 + o }, { x: b.x0 - o, y: b.y1 + o }], true); p.paint({ fill: '#ffffff' }); pathPoly(p, [{ x: b.x0, y: b.y0 }, { x: b.x1, y: b.y0 }, { x: b.x1, y: b.y1 }, { x: b.x0, y: b.y1 }], true); p.clip();
       if (f.multi) { const lines = wrapText(v, sz, false, Math.max(10, w - 6)); lines.forEach((ln, i) => p.text(ln, b.x0 + 3, b.y0 + 2 + sz * 0.95 + i * sz * 1.22, sz, '#000000', false)); }
       else p.text(v, b.x0 + 2.5, b.y1 - Math.max(2, (h - sz * 0.72) / 2), sz, '#000000', false);
       p.restore(); } } catch (e) {} return r; };

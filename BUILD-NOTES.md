@@ -248,3 +248,10 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   (14→11.5 and 14→8), the saved PDF carries sizes ≤ the chosen 14 with the narrow cells smaller, and the flattened PDF's
   text has the dates and hours in full. The blue boxes he saw in Acrobat on a flattened copy are Acrobat's own field
   highlight on the fillable copy in the next tab — a render of the flattened file here has no shading at all.
+
+86.83 — FORMSZ86 fit, two corrections found on his own timesheet: (1) the repaint bailed out when S.form[src] was empty,
+  so a form opened with answers already in it (his timesheet) kept the viewer's clipped drawing until he typed in a
+  field — the drawFormText wrapper no longer requires S.form and reads every value through fieldVal; (2) the white cover
+  was inset 1 pt inside the field, which left slivers of the viewer's larger glyphs along the left and right edges ("text
+  behind the text") — it now covers the field plus 0.9 pt all round, under the clip. Checked by rendering the week-1 row
+  through renderRegion (the screen's own path) before and after: dates and 7R,1AA fitted, no leftovers.
