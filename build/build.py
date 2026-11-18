@@ -51,9 +51,11 @@ body = body.replace(old, f"const BUILD = '{LABEL}';")
 # 3a. new feature parts for this edition (same scope as the V85 parts, right before the wiring)
 anchor = '\n/* ---------- wiring ---------- */\nfunction nameDialog()'
 assert body.count(anchor) == 1, 'wiring anchor'
-parts = ''.join('\n' + (HERE / 'parts' / f).read_text() for f in sorted(p.name for p in (HERE / 'parts').glob('app*.js')))
+# number order, not text order: app100 comes after app99, so a later part always wraps the earlier ones
+partNames = sorted((p.name for p in (HERE / 'parts').glob('app*.js')), key=lambda n: int(''.join(c for c in n if c.isdigit()) or 0))
+parts = ''.join('\n' + (HERE / 'parts' / f).read_text() for f in partNames)
 body = body.replace(anchor, '\n' + parts + anchor)
-print('parts:', sorted(p.name for p in (HERE / 'parts').glob('app*.js')))
+print('parts:', partNames)
 
 # 3b. documented code patches (see patches.py)
 import importlib.util

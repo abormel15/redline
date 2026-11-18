@@ -100,6 +100,16 @@ SECTIONS = [
    ('tap', None, 'Tap the sheet wherever it goes; keep tapping for more. Pick another tool when done.'),
    ('hold', None, 'A placed symbol: drag a corner to resize, tap a swatch to recolour, hold it for <b>Highlight</b>, <b>Bigger</b>, <b>Smaller</b>.')],
    note='Electrical, lighting, plumbing, appliances, HVAC, general marks and the drawing marks (section cuts, bubbles, north arrow). They save and flatten like any markup.'),
+  dict(id='civil', title='Civil and site symbols', icon='symbol', clip=None, keys='civil site gas electric water meter sprinkler head irrigation hydrant fdc manhole catch basin cleanout bollard ada tree silt fence utility', steps=[
+   ('tap', None, 'Tap the <b>Symbols</b> tool, then the <b>Civil / site</b> group (or type what you want: meter, hydrant, catch basin…).'),
+   ('tap', None, 'Meters, valves and curb stops, backflow preventers, transformers and poles, hydrants, FDC and post indicator valves, fire sprinkler heads, irrigation heads, cleanouts, manholes, catch basins, area drains, downspouts, culverts, swale arrows, spot elevations, benchmarks, bollards, ADA spaces, parking counts, trees and silt fence.'),
+   ('hold', None, 'A symbol’s letter or number belongs to that markup: double-tap it, or hold it and choose <b>Change the letter or number…</b> — so two water meters can read W1 and W2, and a detail bubble carries this drawing’s number.')],
+   note='Size, colour and the highlight block work the same as the other symbols.'),
+  dict(id='lesstext', title='Editing the drawing’s text without bloating the file', icon='text', clip=None, keys='editable text boxes file size clean up heavy slow cad lines', steps=[
+   ('tap', 'more', '<b>⋯ More › Make all the text on this page editable</b> now asks first.'),
+   ('tap', None, '<b>Tap the lines I want</b> is the light way: with the Edit text tool, a line becomes a box only when you edit it.'),
+   ('tap', 'more', 'Already converted a sheet? <b>⋯ More › Clean up the text boxes you never changed</b> takes the untouched ones back out, and the drawing’s own words show again.')],
+   note='Every cover and box is written into the PDF you save, which is what makes a converted sheet grow — on a test page, seven lines added about 40 KB.'),
   dict(id='looks', title='Blueprint look and sharper scans', icon='look', clip='looks', keys='blueprint grayscale black lines faded sharpen scan colour swap drawing look', steps=[
    ('tap', 'more', 'Tap <b>⋯ More › How the drawing shows</b> (or hold on the page › Change colors).'),
    ('tap', None, 'Pick <b>Blueprint</b>, <b>Grayscale</b>, <b>Black lines</b>, <b>Faded</b> or <b>Swap a color</b>.'),

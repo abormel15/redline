@@ -1,7 +1,7 @@
 /* Redline Desk — offline cache. The app shell and the PDF libraries are stored on install; the page itself is fetched
    from the network first so updates arrive, with the cached copy used when offline. Fonts and anything else fetched
    while online are kept for later. Version is replaced by the build. */
-const VERSION = '4c15c62adb';
+const VERSION = '618498566d';
 const SHELL = 'rd-shell-' + VERSION, RUNTIME = 'rd-runtime';
 const PRECACHE = ['./', 'index.html', 'manifest.webmanifest', 'lib/pdf.min.js', 'lib/pdf-lib.min.js', 'lib/pdf.worker.min.js',
   'lib/standard_fonts/LiberationSans-Regular.ttf', 'lib/standard_fonts/LiberationSans-Bold.ttf', 'lib/standard_fonts/LiberationSans-Italic.ttf', 'lib/standard_fonts/LiberationSans-BoldItalic.ttf',

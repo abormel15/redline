@@ -4,6 +4,11 @@
    under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
 const RELNOTES86 = true;
 const RELNOTES = [
+  { v: '86.94', date: 'Nov 18, 2026', items: [
+    'Civil and site symbols: gas, electric and water meters, valves and curb stops, backflow preventers, transformers, poles, hydrants, FDC, post indicator valves, fire sprinkler heads, irrigation heads and valves, cleanouts, manholes, catch basins, area drains, downspouts, culverts, swales, spot elevations, benchmarks, bollards, ADA spaces, parking counts, trees, silt fence and more.',
+    'Every symbol’s letter or number is yours to set on the sheet: double-tap it, or hold it and choose “Change the letter or number…”, so two meters can read W1 and W2 and a bubble carries this drawing’s own number.',
+    'Editing the drawing’s own text asks first now: tapping the lines you want keeps the file small, since turning every line into a box writes all of them into the PDF. ⋯ More › “Clean up the text boxes you never changed” removes untouched ones from a sheet that was already converted.',
+    'An empty box Redline found on a form is no longer written into the saved PDF — only the ones you filled in.' ] },
   { v: '86.90', date: 'Nov 18, 2026', items: [
     'Crop pages. Draw a rectangle around the part of the sheet worth keeping, hold on it, and choose Crop this page to the box or Crop every page to the box. The markups move with it, the saved PDF opens cropped in other readers, and ⋯ More › Undo the crop brings the whole sheet back.' ] },
   { v: '86.86', date: 'Nov 18, 2026', items: [

@@ -282,3 +282,26 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   box, the guide rectangle goes, a markup inside keeps its place, the pdf.js page measures the window, the saved PDF has
   the CropBox with the full MediaBox underneath, the crop survives reopening, undo restores size and markups, and every
   page crops to the same window. Not covered: OCR text positions and saved link view boxes are not re-mapped by a crop.
+
+86.94 — three things that came out of his own sheets:
+  EDTXLEAN86 (parts/app101.js): "Make all the text on this page editable" asks first. Tapping the lines you want is the
+  default (setTool('edittext'); V85 already converts one line per tap through editTextAt), so nothing is created until a
+  line is edited; "Turn them all into boxes" keeps the old path, with the line count and a word about size. lineToMarkups
+  records t.orig86 = the line's text, so edtxUnchanged86 can tell an untouched pair from an edited one, and
+  edtxClean86() removes untouched cover+text pairs — for sheets converted before this build it falls back to comparing
+  each box with the page's own text lines. ⋯ More carries it when such pairs exist. Measured on docA (7 lines): plain
+  save 3.5 KB, all-at-once 45 KB, after the cleanup 9 KB.
+  Forms (parts/app96.js): a detected field with no value is no longer written into the saved PDF (f.added86 marks a field
+  the user added by hand, which is always written). The timesheet case: 18 boxes found, 0 written when empty, 1 written
+  after filling one in.
+  CIVIL86 (parts/app102.js): 46 civil/site symbols in their own picker group (meters, valves, curb stops, BFP,
+  transformer, poles, hand hole, generator, EV, propane, well, septic, condenser, hydrant, FDC, PIV, fire sprinkler head,
+  riser, irrigation head and valve, yard hydrant, cleanout, manhole, catch basin, area drain, downspout, sump discharge,
+  culvert, swale arrow, spot elevation, benchmark, bollard, sign, ADA space, parking count, tree, shrub, silt fence, tree
+  protection, soil boring, mailbox), drawn by a symDraw86 wrapper. Labels: symTextDialog86 opens from a hold ("Change the
+  letter or number…") and from a double-tap (startEdit is wrapped for symbol markups, which also covers V85's own
+  drawing marks — section cuts, detail bubbles, keynotes — so each one carries this drawing's number).
+  build.py: parts are now read in number order (app100 after app99); before, text order put app100/app101 first and a
+  later part could not wrap an earlier one. Tests: t142.js (ask-first, light way, all-at-once, measured file sizes,
+  cleanup, empty fields left out of the save), t143.js (the group, placing a meter, the hold menu, the label dialog, two
+  meters with their own labels). t134 and t136 updated for the new behaviour.
