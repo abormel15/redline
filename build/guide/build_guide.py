@@ -109,11 +109,12 @@ SECTIONS = [
    ('key', None, '<kbd>Ctrl</kbd> <kbd>P</kbd> prints. <kbd>Tab</kbd> moves to the next form field, <kbd>Shift</kbd> <kbd>Tab</kbd> back.')]),
  ]),
  ('forms', 'c-green', 'Forms', 'Fill out any PDF form, fillable or not.', [
-  dict(id='forms', title='Fill out a form', icon='form', clip='forms', keys='form fill fields 401k benefits boxes checkbox tab acrobat my details', steps=[
+  dict(id='forms', title='Fill out a form', icon='form', clip='forms', keys='form fill fields 401k benefits boxes checkbox tab acrobat my details text size font bigger smaller fit', steps=[
    ('tap', 'more', 'Open the form and tap <b>⋯ More › Fill out this form</b>. Boxes, underlines, ____ runs and little squares become light-blue fields.'),
    ('tap', None, 'Tap a field to type or tick. <kbd>Tab</kbd> or <kbd>Enter</kbd> moves to the next one, <kbd>Shift</kbd> <kbd>Tab</kbd> back.'),
    ('tap', None, 'Fields labelled Name, Address, Phone, Email fill from <b>Settings › My details for forms</b> with one tap; Date fields get today’s date.'),
-   ('hold', None, 'Missed a box? Hold on the page › <b>Add a text field here</b> or <b>Add a checkbox here</b>. <b>Remove this field</b> for a false hit.')],
+   ('hold', None, 'Missed a box? Hold on the page › <b>Add a text field here</b> or <b>Add a checkbox here</b>. <b>Remove this field</b> for a false hit.'),
+   ('tap', None, 'Text too big or too small for the box? While the field is open, the small bar above it has <b>A−</b> and <b>A+</b>, <b>Auto</b> to go back, and <b>All</b> to use that size for every field in the document. Holding on a field gives the same under <b>Text size for this field…</b>.')],
    note='<b>Save PDF</b> turns the fields into real form fields, so the file is fillable in Acrobat and Preview too, with your answers in it. <b>Save flattened PDF</b> prints the answers in. Scanned forms (pictures) are not read yet: add fields by hand there.'),
  ]),
  ('out', 'c-purple', 'Print and save', 'Getting the work out.', [

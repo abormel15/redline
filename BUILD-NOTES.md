@@ -215,3 +215,22 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   guide instead of the app offline. Tests: t137.js (page served with cards/clips/current note, the three entry points,
   overlay at #symbols, Escape/Close, Guide button → #notes); t134 pinned to the 86.67 note. Not tested: the overlay on a
   real iPad home-screen app (iframe on the same origin, no reason it differs), Listen voices on iPadOS.
+
+86.76 — FORMSZ86 (parts/app98.js): the text size in a form field is the person's to set. fieldSize86(pg, f, auto) is what
+  the drawing and saving code asks; sizes live in S.formSz86[src] = { [fieldId]: pt, __all: pt }, saved in docState,
+  restored in readDoc, cleared by resetDocExtras (same pattern as S.det86). The bar (#fszBar86, built next to #fieldEd)
+  shows above the open editor: A− / A+ step through FSZ_STEPS86 (5–24 pt), the middle button reads "Auto · <n>" or
+  "<n> pt" and returns to automatic, All writes __all for the whole document. It swallows pointerdown/touchstart so the
+  editor keeps focus, and hides itself when #fieldEd hides (MutationObserver). Ctrl/⌘+Shift+> and < do the same from the
+  keyboard. Hold on a text field → "Text size for this field…" (chips + "every field in this document"). Auto for a real
+  AcroForm field is the PDF's own size, read from the annotation's defaultAppearanceData in a pageFields wrapper (f.fs0);
+  for a detected field it is the fit-to-box size app96 already used. Drawing: detected fields take the size through
+  fieldSize86 in app96's drawFormText wrapper (a chosen size switches off the shrink-to-fit loop); real fields are drawn
+  by pdf.js at the PDF's own size, so app98's drawFormText wrapper paints over them (white box + text) when a size is
+  chosen. Saving: app96 sets it on fields it creates, app98 on real ones (setFontSize + fszDA86 writing /DA), so the saved
+  PDF and the flattened one both carry it. Tests: t138.js in two browser runs (fx/acro.pdf, a reportlab PDF with real
+  AcroForm fields, then fx/form.pdf): bar position and Auto label, A− twice keeps the editor open and moves its font,
+  leaving the field closes both, the dialog's "every field", a second field opening at the document size, the saved PDF's
+  DA at 14 pt, sizes after reopening, per-field size on a detected field, the saved and flattened output, the keyboard
+  step. Known: pdf-lib writes the DA font as /Helvetica while the form's resources name it /Helv, so Acrobat re-editing a
+  field there falls back to its automatic size (display, printing and flattening are unaffected) — not worth the surgery.

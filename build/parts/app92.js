@@ -4,6 +4,8 @@
    under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
 const RELNOTES86 = true;
 const RELNOTES = [
+  { v: '86.76', date: 'Nov 18, 2026', items: [
+    'Forms: text size in a field is yours to set. While a field is open, the bar above it has A− and A+, Auto to go back, and All to use that size for every field in the document (Ctrl/⌘+Shift+> and < from the keyboard). Or hold on a field › Text size for this field…. The size goes into the saved PDF.' ] },
   { v: '86.67', date: 'Nov 17, 2026', items: [
     'A guide to the iPad edition: short clips and numbered steps for the account, drag and drop, sheet sets, symbols, forms, printing, side by side, links with a view and the looks. ⋯ More › Guide to the iPad edition, the Guide button on this card, or /guide/ next to the app.' ] },
   { v: '86.66', date: 'Nov 17, 2026', items: [
