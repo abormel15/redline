@@ -4,6 +4,10 @@
    under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
 const RELNOTES86 = true;
 const RELNOTES = [
+  { v: '86.102', date: 'Nov 19, 2026', items: [
+    '⋯ More › “Clean up the text boxes you never changed…” is now always in the menu while a document is open (it used to appear only on some pages, so it could not be found).',
+    'It counts what it finds before removing anything — on this page and in the whole document — and covers sheets converted by earlier builds, blank white covers with no text left on them, and empty form boxes Redline found. Tick what should go; Undo brings it back.',
+    'Holding on a page that has such boxes offers the same cleanup.' ] },
   { v: '86.100', date: 'Nov 18, 2026', items: [
     'A full check of the app, every tool and menu driven three ways — mouse and keyboard, a finger, the Pencil — and the gaps closed:',
     'Forms on the iPad: the A− / A+ / Auto / All bar above a field now answers a finger or the Pencil (it only answered a mouse), and ◀ ▶ on that bar step to the previous and next field, the touch way to Shift+Tab and Tab.',

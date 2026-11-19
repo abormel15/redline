@@ -108,7 +108,8 @@ SECTIONS = [
   dict(id='lesstext', title='Editing the drawing’s text without bloating the file', icon='text', clip=None, keys='editable text boxes file size clean up heavy slow cad lines', steps=[
    ('tap', 'more', '<b>⋯ More › Make all the text on this page editable</b> now asks first.'),
    ('tap', None, '<b>Tap the lines I want</b> is the light way: with the Edit text tool, a line becomes a box only when you edit it.'),
-   ('tap', 'more', 'Already converted a sheet? <b>⋯ More › Clean up the text boxes you never changed</b> takes the untouched ones back out, and the drawing’s own words show again.')],
+   ('tap', 'more', 'Already converted a sheet? <b>⋯ More › Clean up the text boxes you never changed…</b> (near the bottom of the menu, always there while a document is open) counts the unchanged text boxes, blank covers and empty form boxes — on this page and in the whole document.'),
+   ('tap', None, 'Tick what should go, then <b>This page</b> or <b>Whole document</b>. The drawing’s own words show again, and <b>Undo</b> brings the boxes back.')],
    note='Every cover and box is written into the PDF you save, which is what makes a converted sheet grow — on a test page, seven lines added about 40 KB.'),
   dict(id='looks', title='Blueprint look and sharper scans', icon='look', clip='looks', keys='blueprint grayscale black lines faded sharpen scan colour swap drawing look', steps=[
    ('tap', 'more', 'Tap <b>⋯ More › How the drawing shows</b> (or hold on the page › Change colors).'),

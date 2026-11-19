@@ -338,3 +338,16 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   written for the 13-inch viewport: run it without VP=air (at 1180×820 its wobbly stroke starts nearer the horizontal
   family than the vanishing line, 11.6° vs 12.5°, so the assist rightly picks horizontal and the test's expectation fails).
   The size bar drops only a click that trails a touchend (same-kind repeats all count, so quick A− A− works).
+
+86.102 — the cleanup could not be found: its ⋯ More entry was only added when the current page had cover+text pairs
+  that carried coverId (86.51+), so on sheets converted earlier, on other pages, or for form boxes it never showed.
+  app101 now: the entry is always in More while a document is open (its note counts the boxes on the page), and it opens
+  edtxCleanDialog86 — a survey first (edtxSurvey86 per page: unchanged pairs, blank covers, empty detected form fields),
+  counts for this page and the whole document, three tick boxes, then This page / Whole document. edtxCovers86 pairs a
+  cover with its text box by coverId or, for older sheets, by place (the text box whose middle sits on the cover);
+  "unchanged" is orig86 === text or, without that record, the page's own text line at that spot reading the same. A text
+  box emptied on purpose and (when unticked) a blank cover are left alone. Empty form boxes are cut from S.det86 (hand-
+  added and filled ones stay). One pushUndo for the lot. Holding on a page that has any offers "Clean up boxes you never
+  used…". Test t144.js (PC, finger, Pencil): entry always present, the nothing-to-do wording, an older-style sheet
+  (coverId and orig86 stripped), counts in the dialog, Whole document, Undo, a white-out kept, empty form boxes removed
+  with the filled one kept, the hold-menu route.
