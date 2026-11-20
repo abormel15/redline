@@ -1,0 +1,6 @@
+{
+ "build": "86.103",
+ "cut": "2026-11-19",
+ "sw": "sc1081278d",
+ "note": "Frozen copy. Changes only when a build is promoted on purpose (build/deploy.sh PROMOTE=1)."
+}

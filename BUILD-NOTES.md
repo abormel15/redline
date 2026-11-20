@@ -351,3 +351,24 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   used…". Test t144.js (PC, finger, Pencil): entry always present, the nothing-to-do wording, an older-style sheet
   (coverId and orig86 stripped), counts in the dialog, Whole document, Undo, a white-out kept, empty form boxes removed
   with the filled one kept, the hold-menu route.
+
+## 86.103 (Nov 19 2026) — the frozen "stable" copy for sharing
+
+**Link: https://abormel15.github.io/redline/stable/** — a copy of the app that does not change when the main version is deployed.
+
+- `parts/app84.js`: runtime switch `window.__rdNoAccount86`. When a page sets it before the app script, there is no sign-in
+  anywhere (Files › More, Settings › Redline account, the sign-in dialog, the account Help topic), `cloudInit` leaves the
+  account off without contacting Supabase, and `cloudEnable` only explains that the copy keeps everything on the device.
+  Storage says where documents live instead of pointing at an account switch. Off (the main version): no change.
+- `parts/app92.js`: a copy with that switch does not show "What's new" on a first visit.
+- `make_stable.py`: cuts the frozen copy from `/home/claude/rd` into `/home/claude/rd-stable`: sets the switch, label
+  "… · shared copy", guide without the account card, service worker with its own cache names (`rds-shell-*`, `rds-runtime`)
+  so the main worker's clean-up (`rd-shell-*`) never clears it, `STABLE.json` saying which build it was cut from.
+- `deploy.sh`: the deploy procedure as a script. **An ordinary deploy never touches `stable/`** (the wipe step skips it, and the
+  script refuses to push if `stable/` would change). `PROMOTE=1 deploy.sh "…"` replaces it. Promote only when Alexander asks.
+- Why accounts are off in the shared copy: the Supabase project's built-in mailer only reaches team addresses (2 emails/hour),
+  so other people could not confirm an account; and their documents would land in Alexander's personal backend.
+- Same origin as the main version (abormel15.github.io), so on a device that opens BOTH links the two share one document store
+  and one set of settings. A friend who only uses the stable link is unaffected.
+- Test: `audit/tstable.js` (main and stable side by side on one device: labels, no sign-in in stable, sign-in still in main,
+  separate service workers and caches, each opens offline as itself).
