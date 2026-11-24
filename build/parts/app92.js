@@ -4,6 +4,9 @@
    under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
 const RELNOTES86 = true;
 const RELNOTES = [
+  { v: '86.106', date: 'Nov 24, 2026', items: [
+    'Print: type the exact pages to print. The page box is always in the Print dialog now (it used to appear only after pressing Range): 3, 5, 12-18 — also 40- for page 40 to the end, -5 for the first five, 12 to 18, or sheet names such as A-101.',
+    'The line under the box says what will print before anything is sent, and names anything it could not use (a page past the end). Pages picked with Select in the Pages panel are filled in for you. Enter prints.' ] },
   { v: '86.105', date: 'Nov 24, 2026', items: [
     'Pages panel: drag its edge wider and the thumbnails grow to fill it; wider still and they shift into two or more columns. Dragging a thumbnail to reorder works in every layout. On the iPad the edge is now a finger-sized strip with a grip mark.',
     'Files › Organize (next to Sort): sorts the loose documents into folders in one press — by project name (names that start the same way go together) or by month. It shows what it will do first, any folder can be unticked or renamed, and Undo puts everything back.',

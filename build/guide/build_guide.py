@@ -154,9 +154,11 @@ SECTIONS = [
    note='<b>Save PDF</b> turns the fields into real form fields, so the file is fillable in Acrobat and Preview too, with your answers in it. <b>Save flattened PDF</b> prints the answers in. Scanned forms (pictures) are not read yet: add fields by hand there.'),
  ]),
  ('out', 'c-purple', 'Print and save', 'Getting the work out.', [
-  dict(id='print', title='Print', icon='print', clip='print', keys='print printer airprint pages range markups', steps=[
+  dict(id='print', title='Print', icon='print', clip='print', keys='print printer airprint pages range specific page numbers type markups', steps=[
    ('tap', 'save', 'Tap <b>Save › Print…</b> (or <kbd>Ctrl</kbd> <kbd>P</kbd>).'),
-   ('tap', None, 'Choose <b>This page</b>, <b>All</b> or a <b>Range</b>, and whether the markups are printed on the sheet or left out.'),
+   ('tap', None, 'Choose <b>This page</b> or <b>All</b>, or type the pages you want in the box: <b>3, 5, 12-18</b>. The line under the box says exactly what will print.'),
+   ('type', None, 'The box also takes <b>40-</b> (page 40 to the end), <b>-5</b> (the first five), <b>12 to 18</b>, and sheet names such as <b>A-101</b> when your pages are named. Pages picked with <b>Select</b> in the Pages panel are filled in for you.'),
+   ('tap', None, 'Choose whether the markups are printed on the sheet or left out, then <b>Print…</b> (<kbd>Enter</kbd> in the box does the same).'),
    ('look', None, 'On the iPad the PDF opens in the share sheet: choose <b>Print</b> there (or Save to Files). On a computer the print dialog opens straight away; pick paper size and “Fit to page” there.')]),
   dict(id='saveas', title='Save over the file on a computer', icon='save', clip=None, keys='save as save over file chrome edge download folder', steps=[
    ('tap', None, 'In Chrome or Edge on a computer, <b>Open</b> uses the system file picker and remembers the file.'),

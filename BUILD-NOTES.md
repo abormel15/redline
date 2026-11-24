@@ -420,3 +420,20 @@ Three reports the same morning (two videos from the laptop).
   the bar and from More, by month, inside a folder) — mouse, finger. `audit/t148.js` (wheel zoom steps) — mouse.
   Fixtures: fx/set12.pdf (12 landscape sheets), fx/org/*.pdf (nine named one-page documents).
 - stable/ not promoted (still 86.103).
+
+## 86.106 (Nov 24 2026) — Print: type the exact pages
+
+"On the print feature I need to be able to type specific page numbers to print." The box existed but showed only after pressing
+Range, so it was not found.
+
+- `parts/app93.js` PRINTPAGES86: the page box is always in the Print dialog; third choice renamed "These pages". Typing (or
+  focusing the box) selects it. `parseRangeInfo86(txt, n, pages)` → `{idx, bad}`: 3, 5, 12-18 · 12–18 · 12 to 18 / thru /
+  through · 40- (to the end) · -5 (from the start) · reversed ranges · "and" / & / ; · sheet names (page labels) · repeats
+  dropped · pages past the end named in `bad`. A line under the box says what will print or what could not be used; printing
+  nothing is refused with the dialog left open. Pages picked with Select in the Pages panel are pre-filled. Enter prints.
+  With a keyboard, typing a digit anywhere in the dialog goes into the box. `parseRange86` kept (same result shape) for callers.
+- Also fixed: after printing on a computer the keyboard focus stayed in the hidden print frame, so a second Ctrl+P did not
+  reach the app. Focus goes back to the window after `print()` returns.
+- Test `audit/t149.js`: computer (the PDF given to the print frame is opened and its sheets read) and iPad identity with
+  finger and Pencil (the PDF given to the share sheet). 14 checks on the computer, 12 on the iPad.
+- stable/ not promoted (still 86.103).
