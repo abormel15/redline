@@ -25,7 +25,7 @@ cp -r "$B/parts" build/
 cp "$B"/{patches.py,build.py,make_stable.py,deploy.sh,theme.css,boot.js,sw.js,manifest.webmanifest,icon.svg,serial.txt,supabase.sql} build/
 cp "$B/guide/build_guide.py" build/guide/
 cp /home/claude/markup/rec.js build/
-cp /home/claude/markup/{tw.js,aud_lib.js,aud1.js,aud2.js,aud3.js,aud4.js,tstable.js,t145.js} build/audit/
+cp /home/claude/markup/{tw.js,aud_lib.js,aud1.js,aud2.js,aud3.js,aud4.js,tstable.js,t145.js,t146.js,t147.js,t148.js} build/audit/
 git add -A
 if [ "${PROMOTE:-}" != 1 ] && ! git diff --cached --quiet -- stable; then
   echo "REFUSED: this deploy would change stable/. Nothing was pushed."; git reset -q --hard origin/main; exit 1

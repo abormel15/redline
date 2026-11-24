@@ -67,6 +67,17 @@ SECTIONS = [
    ('drag', None, 'Drag it onto a <b>folder card</b>, or onto <b>Projects</b> or a parent folder in the path above the cards.'),
    ('tap', None, 'Select several first (the <b>Select</b> button) and they move together.')],
    note='A quick swipe still scrolls. A folder cannot be dropped into itself. “Move to a folder” in the card’s … menu still works too.'),
+  dict(id='organize', title='Organize: loose documents into folders in one press', icon='folder', clip=None, keys='organize auto sort folders project month tidy clean up files undo', steps=[
+   ('tap', None, 'In <b>Files</b>, press <b>Organize</b> (next to Sort). It is also the first line under <b>More</b>.'),
+   ('look', None, 'It lists the folders it would make for the documents lying loose where you are. <b>By project name</b> puts names that start the same way together (“106 S Lee St survey” and “106 S Lee St bld plan” go into “106 S Lee St”); <b>By month</b> makes one folder per month a document was last changed.'),
+   ('tap', None, 'Untick a folder you do not want, or type a better name for it. Then press <b>Organize</b>. Nothing moves before that.'),
+   ('tap', None, 'Changed your mind? Press <b>Undo</b> on the bar that appears, or <b>More › Undo the last Organize</b> later. Every document goes back and the folders it made are removed.')],
+   note='A document whose name starts with the name of a folder that is already there goes into that folder. One that matches nothing stays where it is. Inside a folder, Organize only looks at that folder.'),
+  dict(id='thumbs', title='Bigger page thumbnails', icon='sheets', clip=None, keys='pages panel thumbnails bigger wider columns resize drag edge reorder', steps=[
+   ('drag', None, 'Open the <b>Pages</b> panel and drag its right edge. On the iPad the edge is the strip with the small grip mark.'),
+   ('look', None, 'The thumbnails grow to fill the panel. Make it wider still and they shift into two, three or more columns.'),
+   ('drag', None, 'Reordering works in every layout: drag a thumbnail (on the iPad, hold it for a moment first) and drop it where the bar shows.')],
+   note='The width is remembered. Drag the edge back for a single narrow column.'),
   dict(id='crop', title='Crop pages down to what matters', icon='crop', clip=None, keys='crop trim cut page sheet detail title block zoom area', steps=[
    ('drag', None, 'With the <b>Rectangle</b> tool, draw a box around the part of the sheet you want to keep.'),
    ('hold', None, 'Hold on that rectangle and choose <b>Crop this page to the box</b>, or <b>Crop every page to the box</b> for the whole set.'),
@@ -130,7 +141,8 @@ SECTIONS = [
    ('key', None, '<kbd>Alt</kbd> <kbd>Z</kbd> fits the selected text boxes to their text.'),
    ('key', None, '<kbd>Ctrl</kbd>-drag (<kbd>⌘</kbd>-drag on a Mac) a markup to drag away a <b>copy</b>; the original stays.'),
    ('key', None, 'Hold <kbd>Shift</kbd> while moving or resizing to ignore the magnet, smart guides and grid for that move.'),
-   ('key', None, '<kbd>Ctrl</kbd> <kbd>P</kbd> prints. <kbd>Tab</kbd> moves to the next form field, <kbd>Shift</kbd> <kbd>Tab</kbd> back.')]),
+   ('key', None, '<kbd>Ctrl</kbd> <kbd>P</kbd> prints. <kbd>Tab</kbd> moves to the next form field, <kbd>Shift</kbd> <kbd>Tab</kbd> back.'),
+   ('key', None, '<kbd>Ctrl</kbd> + mouse wheel zooms in steps of about 20% per notch, toward the pointer. The wheel alone scrolls. On the iPad, pinch.')]),
  ]),
  ('forms', 'c-green', 'Forms', 'Fill out any PDF form, fillable or not.', [
   dict(id='forms', title='Fill out a form', icon='form', clip='forms', keys='form fill fields 401k benefits boxes checkbox tab acrobat my details text size font bigger smaller fit', steps=[

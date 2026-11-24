@@ -391,3 +391,32 @@ And a deleted answer looks empty while selected but shows the old text again aft
   Passes with mouse (1440×900), finger (13" iPad) and Pencil (11" iPad).
 - Not changed: Undo does not cover form answers (V85 never put them in history).
 - stable/ was NOT promoted: the shared copy is still 86.103 and still has this flaw until Alexander asks for a promotion.
+
+## 86.105 (Nov 24 2026) — thumbnails that fill the Pages panel, Files › Organize, wheel zoom in steps
+
+Three reports the same morning (two videos from the laptop).
+
+- **THUMBFIT86** (`parts/app105.js`, two patches): the Pages panel list is a grid, `repeat(auto-fill, minmax(140px, 1fr))`.
+  Thumbnails fill their column and flow into 2, 3… columns as the panel is dragged wider. `thumbDraw` is wrapped so the bitmap
+  follows the size on screen (drawn from the 900px page preview already kept). Drag-to-reorder: `place()` in V85 only looked at
+  y; patched to test x as well when the list has the `cols86` class, and `window.__rdPgIns86` stands the drop bar between two
+  thumbnails (absolutely placed, so nothing shifts). One column: original test, original horizontal line.
+  Touch: a finger could not grab the panel edge at all in the harness (a 10px strip, half of it under the sheet because the
+  panel is its own stacking context). On `any-pointer: coarse` the Pages panel edge is a 24px strip inside the panel with a grip.
+  Only the Pages panel; the right-hand panels' edges are unchanged.
+- **ORGANIZE86** (`parts/app106.js`, one patch for Files › More): Organize button next to Sort. `orgPlan86(mode)` proposes
+  folders for the loose documents of the folder shown: by project name (leading words in common; an existing folder whose name
+  a document starts with takes it; inside a folder its own name is ignored) or by month last changed. Dialog with tick boxes and
+  editable names; `orgApply86` moves (`idb lib`, `saveFolders`, `cloudSoon` per document — the same as a manual move);
+  `orgUndo86` from the bar or Files › More puts back what is still where Organize put it and removes the folders it made if
+  they are empty again. No AI, names and dates only. Templates and documents shared by someone else are skipped.
+  Assumption made: "auto organize folders" = sort documents into folders. If he meant arranging the folders themselves, ask.
+- **WHEELZOOM86** (two patches): Ctrl+wheel used `exp(-deltaY * 0.01)`, made for trackpad pinches. A mouse notch is deltaY 100
+  → 2.72× per notch; a fast wheel reporting 300 → 20× in one event (measured on V85). Now the exponent is clamped to ±0.2
+  (≈ 22% per event); pinch deltas are far below the clamp and unchanged. Same in the side-by-side second view.
+  V85 (the Claude artifact) has the old behaviour; not touched.
+- Tests: `audit/t146.js` (thumbnails: grow, columns, sharpness, reorder in 1 and 3 columns, back to narrow) — mouse, finger,
+  Pencil. `audit/t147.js` (Organize: proposal, rename, untick, existing folder, empty folder, saved to the device, Undo from
+  the bar and from More, by month, inside a folder) — mouse, finger. `audit/t148.js` (wheel zoom steps) — mouse.
+  Fixtures: fx/set12.pdf (12 landscape sheets), fx/org/*.pdf (nine named one-page documents).
+- stable/ not promoted (still 86.103).

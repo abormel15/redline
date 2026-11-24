@@ -4,6 +4,10 @@
    under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
 const RELNOTES86 = true;
 const RELNOTES = [
+  { v: '86.105', date: 'Nov 24, 2026', items: [
+    'Pages panel: drag its edge wider and the thumbnails grow to fill it; wider still and they shift into two or more columns. Dragging a thumbnail to reorder works in every layout. On the iPad the edge is now a finger-sized strip with a grip mark.',
+    'Files › Organize (next to Sort): sorts the loose documents into folders in one press — by project name (names that start the same way go together) or by month. It shows what it will do first, any folder can be unticked or renamed, and Undo puts everything back.',
+    'Ctrl + mouse wheel now zooms in steps of about 20% per notch. Before, one notch could leap from far out to far in with nothing in between.' ] },
   { v: '86.104', date: 'Nov 24, 2026', items: [
     'Forms: what you type now shows in the box as soon as you leave it, and an answer you delete is gone from the page. Before, the page kept showing the box as it was until the document was opened again (the answer itself was always stored and saved correctly).',
     'The same goes for checkboxes and pick-from-a-list fields, at any zoom.' ] },
