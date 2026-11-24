@@ -4,6 +4,9 @@
    under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
 const RELNOTES86 = true;
 const RELNOTES = [
+  { v: '86.104', date: 'Nov 24, 2026', items: [
+    'Forms: what you type now shows in the box as soon as you leave it, and an answer you delete is gone from the page. Before, the page kept showing the box as it was until the document was opened again (the answer itself was always stored and saved correctly).',
+    'The same goes for checkboxes and pick-from-a-list fields, at any zoom.' ] },
   { v: '86.103', date: 'Nov 19, 2026', items: [
     'Nothing changes in how this version works. Under the hood, a copy of the app can now be frozen for sharing: it keeps everything on the device, shows no sign-in, and stays exactly as it is until a newer build is promoted to it on purpose.' ] },
   { v: '86.102', date: 'Nov 19, 2026', items: [

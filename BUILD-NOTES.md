@@ -372,3 +372,22 @@ New parts live in `rd-build/parts/` and are inserted before the wiring (same sco
   and one set of settings. A friend who only uses the stable link is unaffected.
 - Test: `audit/tstable.js` (main and stable side by side on one device: labels, no sign-in in stable, sign-in still in main,
   separate service workers and caches, each opens offline as itself).
+
+## 86.104 (Nov 24 2026) — a form answer shows on the page as soon as its field is left
+
+Report (video, timesheet on the laptop): a field shows what was typed only while it is selected; unselected it looks empty.
+And a deleted answer looks empty while selected but shows the old text again afterwards.
+
+- Cause, in V85 since V60 (so the published Claude artifact has it too; it is not touched): the V60 `renderBase` wrapper keeps
+  every finished page picture in `recentBase` and the next `renderBase()` for the same page takes that picture instead of
+  drawing. `setField()` asks for its redraw through `renderBase()`, so the page kept the picture from before the change. The
+  value itself (S.form, pdf.js annotationStorage, the saved PDF) was right all along; reopening the document drew it fresh.
+  Measured: after typing "8R" and leaving the field, 0 dark pixels in the box on V85 and on 86.103; `page.render` was never called.
+- `parts/app104.js` FORMPAINT86: each page picture carries a stamp of the answers it was drawn with (identity of the
+  `S.form[src]` object, which is replaced on every change). Before a render, kept pictures with another stamp are dropped,
+  and the page's quick preview with them. Stamp 0 for documents without answers, so their caching is unchanged.
+- Test `audit/t145.js` (screenshots, dark pixels in the field box): new answer shows; changed answer shows the new text;
+  deleted answers (typed here / came with the file) are gone; zoomed in; Save PDF agrees; checkbox tick on and off.
+  Passes with mouse (1440×900), finger (13" iPad) and Pencil (11" iPad).
+- Not changed: Undo does not cover form answers (V85 never put them in history).
+- stable/ was NOT promoted: the shared copy is still 86.103 and still has this flaw until Alexander asks for a promotion.

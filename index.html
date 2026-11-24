@@ -8529,7 +8529,7 @@ try { HELP.push(['Choosing what goes in a report', ['Every report that lists mar
 Object.assign(RDX, { reportChooser, reportDialog, runReport, RC_FOR, rcKind, RF: () => RF_ONLY });
 
 /* ---------- V81: hold-to-straighten sign, and which version is running ---------- */
-const BUILD = '86.103 · Nov 19 2026 · iPad edition';
+const BUILD = '86.104 · Nov 24 2026 · iPad edition';
 try { const st = document.createElement('style'); st.textContent = `#snapCue{position:fixed;z-index:60;pointer-events:none;padding:6px 12px;border-radius:999px;background:#17212b;color:#fff;font:600 14px var(--ui,system-ui);box-shadow:0 2px 10px #0004;opacity:0;transform:scale(.6);transition:opacity .12s,transform .12s;white-space:nowrap}
 #snapCue.on{opacity:1;transform:scale(1);animation:snapPop .32s ease-out}@keyframes snapPop{0%{transform:scale(.6)}55%{transform:scale(1.15)}100%{transform:scale(1)}}`; document.head.appendChild(st); } catch (e) {}
 // the sign never outlives the stroke, whatever ends it
@@ -9764,6 +9764,9 @@ Object.assign(RDX, { EDTX86, unreadable86, editAllText86: () => editAllText(), d
    under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
 const RELNOTES86 = true;
 const RELNOTES = [
+  { v: '86.104', date: 'Nov 24, 2026', items: [
+    'Forms: what you type now shows in the box as soon as you leave it, and an answer you delete is gone from the page. Before, the page kept showing the box as it was until the document was opened again (the answer itself was always stored and saved correctly).',
+    'The same goes for checkboxes and pick-from-a-list fields, at any zoom.' ] },
   { v: '86.103', date: 'Nov 19, 2026', items: [
     'Nothing changes in how this version works. Under the hood, a copy of the app can now be frozen for sharing: it keeps everything on the device, shows no sign-in, and stays exactly as it is until a newer build is promoted to it on purpose.' ] },
   { v: '86.102', date: 'Nov 19, 2026', items: [
@@ -10507,6 +10510,29 @@ const keysDialogP86 = keysDialog; keysDialog = function () { const r = keysDialo
     for (const [k, v] of rows) { const dt = document.createElement('dt'); dt.innerHTML = k.split(' + ').map(x => x.split(' / ').map(y => '<kbd>' + y.trim() + '</kbd>').join(' / ')).join(' + '); const dd = document.createElement('dd'); dd.textContent = v.replace(/&gt;/g, '>').replace(/&lt;/g, '<'); dl.append(dt, dd); } } catch (e) {} return r; };
 HELP.push(['Mouse, finger and Pencil do the same things', ['Whatever a right-click does on a computer, holding still does on the iPad — on a markup, on one of its handles, or on empty paper, with a finger or the Pencil. Double-click and double-tap both edit a text box or a symbol’s letter. Shift-drag (ignore the magnet and guides for one move) is "Move it freely once" in a markup’s menu. Tab and Shift+Tab between form fields are the ◀ ▶ buttons above the field. Once the Pencil has been used, fingers move the page and the Pencil works the tools; Settings › Draw with a finger changes that.']]);
 Object.assign(RDX, { PARITY86, PAR, rotHandle86: () => rotHandle() }); /* the handle position, for the audit */
+
+/* ---------- FORMPAINT86 (iPad edition): an answer shows on the page the moment its field is left ----------
+   Found Nov 24 2026 (Alexander, timesheet on the laptop): typing in a form field, then leaving it, showed the box as it was
+   before — a new answer looked empty, a deleted answer still showed. The value was stored and saved correctly; only the
+   picture of the page was old. Cause (in V85 since V60): after every page render the picture is kept in recentBase, and the
+   next renderBase() for the same page takes that kept picture instead of drawing again. setField() asks for a redraw with
+   renderBase(), so it got the old picture back. Reopening the document drew it fresh, which is why it went unnoticed.
+   Fix: each page picture remembers which set of answers it was drawn with (the S.form[src] object is replaced on every
+   change, so its identity is the stamp). A kept picture drawn with other answers is dropped before the render, and the
+   quick preview of that page with it. Documents without filled fields have stamp 0 everywhere, so nothing changes for them. */
+const FORMPAINT86 = true;
+const fstMap86 = new WeakMap(); let fstSeq86 = 0;
+function formStamp86(pg) { try { const o = pg && pg.src && S.form && S.form[pg.src]; if (!o || typeof o !== 'object') return 0; let n = fstMap86.get(o); if (!n) fstMap86.set(o, n = ++fstSeq86); return n; } catch (e) { return 0; } }
+const renderBaseFp86 = renderBase; renderBase = async function () {
+  if (!FORMPAINT86) return renderBaseFp86.apply(this, arguments);
+  const pg = cur(); let st = 0;
+  try { if (pg) { st = formStamp86(pg);
+      for (let i = recentBase.length - 1; i >= 0; i--) { const r = recentBase[i], p = pageById(r.page); if (p && p.src && (r.fst86 || 0) !== formStamp86(p)) { recentBase.splice(i, 1); if (!(S.base && S.base.cv === r.cv)) { try { cvFree(r.cv); } catch (e) {} } } }
+      if (S.base && S.base.page === pg.id && !S.base.preview && (S.base.fst86 || 0) !== st) { try { pvMem.delete(pvKey(pg)); } catch (e) {} } } } catch (e) { console.warn('formpaint', e); }
+  const r = await renderBaseFp86.apply(this, arguments);
+  try { if (pg && S.base && S.base.page === pg.id && !S.base.preview && S.base.fst86 == null) S.base.fst86 = st; } catch (e) {}
+  return r; };
+Object.assign(RDX, { FORMPAINT86, formStamp86, recentBase86: () => recentBase.map(r => ({ page: r.page, fst: r.fst86 })) });
 
 /* ---------- wiring ---------- */
 function nameDialog() { const m = modal(`<h3>Your name on markups</h3><p>Saved with each markup and shown in the markup list and on dated stamps.</p><label>Name<input type="text" id="auName" maxlength="60" autocomplete="name"></label>
