@@ -4,6 +4,10 @@
    under ⋯ More › What's new, and in Help. Build.py bumps the label; add an entry here for anything the user would notice. */
 const RELNOTES86 = true;
 const RELNOTES = [
+  { v: '86.107', date: 'Nov 24, 2026', items: [
+    'Organize looks for the folders you already have before making any new one — at any depth, and loosely: “106 S Lee St bld plan” goes into “106 South Lee”, CAM finds “Cameron Oaks”, and a document named like ones already in a folder joins them there.',
+    'More ways to sort: by Project name, Kind of document (drawings, forms, contracts and money, schedules, manuals and specs, photos and scans, notes and letters), Month or Year — and a second level inside each folder (“Then by”), such as Project and then Kind.',
+    'Show opens a folder’s documents with the reason each was put there and a tick box for each one. Type over a new folder’s name; typing the name of a folder you have sends the documents there.' ] },
   { v: '86.106', date: 'Nov 24, 2026', items: [
     'Print: type the exact pages to print. The page box is always in the Print dialog now (it used to appear only after pressing Range): 3, 5, 12-18 — also 40- for page 40 to the end, -5 for the first five, 12 to 18, or sheet names such as A-101.',
     'The line under the box says what will print before anything is sent, and names anything it could not use (a page past the end). Pages picked with Select in the Pages panel are filled in for you. Enter prints.' ] },

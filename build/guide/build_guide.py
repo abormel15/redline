@@ -67,12 +67,13 @@ SECTIONS = [
    ('drag', None, 'Drag it onto a <b>folder card</b>, or onto <b>Projects</b> or a parent folder in the path above the cards.'),
    ('tap', None, 'Select several first (the <b>Select</b> button) and they move together.')],
    note='A quick swipe still scrolls. A folder cannot be dropped into itself. “Move to a folder” in the card’s … menu still works too.'),
-  dict(id='organize', title='Organize: loose documents into folders in one press', icon='folder', clip=None, keys='organize auto sort folders project month tidy clean up files undo', steps=[
+  dict(id='organize', title='Organize: loose documents into folders in one press', icon='folder', clip=None, keys='organize auto sort folders project kind month year existing subfolders tidy clean up files undo', steps=[
    ('tap', None, 'In <b>Files</b>, press <b>Organize</b> (next to Sort). It is also the first line under <b>More</b>.'),
-   ('look', None, 'It lists the folders it would make for the documents lying loose where you are. <b>By project name</b> puts names that start the same way together (“106 S Lee St survey” and “106 S Lee St bld plan” go into “106 S Lee St”); <b>By month</b> makes one folder per month a document was last changed.'),
-   ('tap', None, 'Untick a folder you do not want, or type a better name for it. Then press <b>Organize</b>. Nothing moves before that.'),
-   ('tap', None, 'Changed your mind? Press <b>Undo</b> on the bar that appears, or <b>More › Undo the last Organize</b> later. Every document goes back and the folders it made are removed.')],
-   note='A document whose name starts with the name of a folder that is already there goes into that folder. One that matches nothing stays where it is. Inside a folder, Organize only looks at that folder.'),
+   ('look', None, 'Folders you <b>already have</b> are used first, wherever they sit: “106 S Lee St survey” goes into your “106 South Lee” folder, <b>CAM</b> finds “Cameron Oaks”, and a document named like ones already in a folder joins them. Only what fits nowhere gets a new folder.'),
+   ('tap', None, '<b>Group by</b> Project name, Kind of document (drawings, forms, contracts and money, schedules, manuals and specs, photos and scans, notes and letters), Month or Year. <b>Then by</b> adds a second level inside each folder, for example Project and then Kind.'),
+   ('tap', None, '<b>Show</b> opens a folder’s documents: each says why it was put there and has its own tick box. A new folder’s name can be typed over; type the name of a folder you have and the documents go there.'),
+   ('tap', None, 'Press <b>Organize</b>. Nothing moves before that. <b>Undo</b>, on the bar that appears or under <b>More › Undo the last Organize</b>, puts every document back and removes the folders it made.')],
+   note='It reads names and dates only, on the device. A document that fits nothing stays where it is. Inside a folder, Organize only looks at that folder. Turn off “Use the folders I already have” to see what it would make from scratch.'),
   dict(id='thumbs', title='Bigger page thumbnails', icon='sheets', clip=None, keys='pages panel thumbnails bigger wider columns resize drag edge reorder', steps=[
    ('drag', None, 'Open the <b>Pages</b> panel and drag its right edge. On the iPad the edge is the strip with the small grip mark.'),
    ('look', None, 'The thumbnails grow to fill the panel. Make it wider still and they shift into two, three or more columns.'),

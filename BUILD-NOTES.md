@@ -437,3 +437,27 @@ Range, so it was not found.
 - Test `audit/t149.js`: computer (the PDF given to the print frame is opened and its sheets read) and iPad identity with
   finger and Pencil (the PDF given to the share sheet). 14 checks on the computer, 12 on the iPad.
 - stable/ not promoted (still 86.103).
+
+## 86.107 (Nov 24 2026) — Organize v2: existing folders first, more ways to sort
+
+Feedback within the hour on 86.105's Organize: "it needs to look for existing folders before creating new ones and it needs
+more sorting options. More sophisticated." The first version only used a folder when the document's name *started with* the
+folder's exact name, and only folders directly in view.
+
+- `parts/app106.js` rewritten from `orgLoose86` down:
+  - `orgScope86()` — every folder under the one shown, any depth. `orgScore86(docTokens, folderTokens)` — loose fit: all numbers
+    in the folder name must be in the document name; ≥60% of the folder's words must be found (abbreviations S/South, St/Street,
+    Rd/Road, bld/building…, plurals, 4+ letter prefixes); job codes (CAM → "Cameron Oaks") and initials (BIC ↔ "Belmont
+    Innovation Campus") both ways. Best score wins, ties to the nearer folder.
+  - then "named like what is already in a folder": same name start as documents inside an existing folder.
+  - only the unclaimed rest is clustered into new folders (as before).
+  - modes: project · kind (`ORG_KINDS86`, name keywords; no file is opened) · month · year. `orgFits86` reuses an existing
+    folder for a kind/month/year ("Paperwork" for Forms, "Nov 2026" for 2026-11 November).
+  - `then`: second level (kind/month/year) → subfolders inside the target, existing subfolders reused.
+  - dialog: Group by / Then by / "Use the N folders I already have" switch; rows open (Show) to per-document tick boxes with the
+    reason; name field has the existing folder names as suggestions and a typed existing name is used instead of a duplicate.
+  - undo removes made folders bottom-up; empty-folder offer excludes folders about to be filled.
+- Test `audit/t147.js` rewritten: 30 checks, mouse and finger. Fixtures fx/org (14 one-page documents).
+- Not done: reading inside documents to decide (page size, text) — a saved document can be many MB with its pictures; names and
+  dates only. No AI in this edition.
+- stable/ not promoted (still 86.103).
